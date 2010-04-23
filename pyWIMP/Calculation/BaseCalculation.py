@@ -11,6 +11,7 @@ class BaseCalculation:
         self.show_plots = False
         self.plot_base_name = ""
         self.input_variables = {}
+        self.print_out_plots = False
 
     def is_exit_requested(self):
         if not self.exit_manager: return False
