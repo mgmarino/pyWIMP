@@ -1,0 +1,11 @@
+*.pyc
+Makefile
+*config.mk
+config.log
+config.status
+*.o
+*DICT.C
+*DICT.h
+pyWIMP/lib*
+*.depend
+lib*
