@@ -148,3 +148,38 @@ class LowEnergyBackgroundModel(FittingModel):
 
     def get_list_components(self):
         return (self.pdf_list, self.coefficienct_list)
+
+class TestModel(LowEnergyBackgroundModel):
+    def initialize(self, basevars):
+       
+        self.pdf_list = ROOT.RooArgList()
+        self.coefficienct_list = ROOT.RooArgList()
+
+        tag = ""
+        self.exp_constant_one = ROOT.RooRealVar("expo_const_one%s" % tag,
+                                            "expo_const_one%s" % tag,
+                                            #1./3, 0, 500)
+                                            -3, -100, 5)
+        #self.exp_constant_one.removeMax()
+        self.exp_constant_one.setError(0.5)
+
+        self.exp_coef = ROOT.RooRealVar("exp_coef_%s" % tag,
+                                        "exp_coef_%s" % tag,
+                                        1e-15, 2000)
+        self.flat_coef = ROOT.RooRealVar("flat_coef_%s" % tag,
+                                         "flat_coef_%s" % tag,
+                                         1e-15, 1000)
+        # Flat pdf
+        self.energy_pdf_flat = ROOT.RooPolynomial("energy_pdf_flat_%s" % tag, 
+                                           "energy_pdf_flat_%s" % tag, 
+                                           basevars.get_energy())
+        self.energy_exp_pdf = ROOT.RooExponential("energy_pdf_exp", 
+                                           "energy_pdf_exp", 
+                                           basevars.get_energy(),
+                                           self.exp_constant_one)
+        self.pdf_list.add(self.energy_pdf_flat)
+        self.coefficienct_list.add(self.flat_coef)
+        self.pdf_list.add(self.energy_exp_pdf)
+        self.coefficienct_list.add(self.exp_coef)
+
+
