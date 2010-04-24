@@ -18,7 +18,7 @@ class DataCalculation(ExclusionCalculation.ExclusionCalculation):
         while 1:
             var_obj = var_iter.Next()
             if not var_obj: break
-            aframe = var_obj.frame()
+            aframe = var_obj.frame().emptyClone('temp')
             ROOT.RooAbsData.plotOn(data, aframe)
             model.plotOn(aframe)
             model.plotOn(aframe, 

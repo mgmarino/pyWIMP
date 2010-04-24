@@ -46,14 +46,14 @@ class DataCalcVerification(DataCalculation.DataCalculation):
 
         
         """
-        absolute_min = -20
+        #absolute_min = -20
         number_of_points = 100
         pars = model.getParameters(data)
         expo_coef = pars.find("expo_const_one")
 
-        model_amplitude.setError(0.5)
-        model_amplitude.setVal(0)
-        model_amplitude.setMin(-10)
+        #model_amplitude.setError(0.5)
+        #model_amplitude.setVal(0)
+        #model_amplitude.setMin(-10)
         model_amplitude.setConstant(True)
 
         nll = model.createNLL(data, ROOT.RooFit.Verbose((print_level > 0)))
@@ -75,18 +75,18 @@ class DataCalcVerification(DataCalculation.DataCalculation):
         # has no minimum.  In this case it's important to choose a bound for 
         # the function which is generally at a model_amplitude value of 0 
         # If we take the value of the nll at this point, it will be close enough.
-        while math.fabs(model_amplitude.getMin() - model_amplitude.getVal()) < distance_from_min: 
-           model_amplitude.setMin(model_amplitude.getMin() - distance_from_min) 
-           if model_amplitude.getMin() < absolute_min: break
-           minuit.migrad()
+        #while math.fabs(model_amplitude.getMin() - model_amplitude.getVal()) < distance_from_min: 
+        #   model_amplitude.setMin(model_amplitude.getMin() - distance_from_min) 
+        #   if model_amplitude.getMin() < absolute_min: break
+        #   minuit.migrad()
         min_nll = nll.getVal()
 
         # Determine the range to scan over
         min_value = model_amplitude.getVal() - distance_from_min 
-        if min_value < model_amplitude.getMin(): model_amplitude.setMin(min_value)
         if min_value > 0: min_value = 0
-        max_range = model_amplitude.getVal() + 100
-        if max_range < 100: max_range = 100
+        if min_value < model_amplitude.getMin(): min_value = model_amplitude.getMin() 
+        max_range = model_amplitude.getVal() + 10
+        if max_range < 10: max_range = 10
 
 
 
@@ -117,13 +117,14 @@ class DataCalcVerification(DataCalculation.DataCalculation):
         j = 0
         step_size = (max_range - min_value)/number_of_points
         test_value = min_value
-        min_nll = 0
+        min_nll = 1e15
         min_point = 0
         for j in range(number_of_points): 
             model_amplitude.setVal(test_value)
             minuit.migrad()
             output_list[j] = [test_value, nll.getVal()]
-            #if self.debug:  self.print_plot(model, data)
+            if self.debug:  
+                self.logging("Performing: ", model_amplitude.getVal())
             if nll.getVal() < min_nll:  
                 min_nll = nll.getVal() 
                 min_point = j
@@ -166,11 +167,12 @@ class DataCalcVerification(DataCalculation.DataCalculation):
         # Now the first value in each of these should be the calculated limit
 
         if self.debug:
+            print best_fit
             model_amplitude.setVal(best_fit)
             minuit.migrad()
             self.print_plot(model, data)
             return (best_fit, unbounded_upper_limit, unbounded_lower_limit, bounded_limit, output_list)
-        return (unbounded_limit, bounded_limit)
+        return (best_fit, unbounded_upper_limit, unbounded_lower_limit, bounded_limit)
  
  
     def scan_confidence_value_space_for_model(self, 
@@ -186,6 +188,10 @@ class DataCalcVerification(DataCalculation.DataCalculation):
 
         confidence_value = ROOT.TMath.ChisquareQuantile(cl, 1) 
 
+        # Save the values of the parameters to reset at the end
+        var_cache = ROOT.ostringstream() 
+        model.getVariables().writeToStream(var_cache, False)
+        
         # Generate the data, use Extended flag
         # because the number_of_events is just
         # an expected number.
@@ -195,7 +201,7 @@ class DataCalcVerification(DataCalculation.DataCalculation):
         data_list = [ model.generate(variables,  
                         ROOT.RooFit.NumEvents(number_of_events),
                         ROOT.RooFit.Extended(),
-                        ROOT.RooFit.Name(str(i))) 
+                        ROOT.RooFit.Name("Data_" + str(i))) 
                       for i in range(number_iterations) ]
 
        
@@ -225,5 +231,7 @@ class DataCalcVerification(DataCalculation.DataCalculation):
             # Store the results
             list_of_values.append(get_val)
     
+        # Reset the variables
+        model.getVariables().readFromStream(ROOT.istringstream(var_cache.str()), False)
         return list_of_values
 
