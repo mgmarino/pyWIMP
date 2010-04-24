@@ -1,15 +1,12 @@
 import numpy
 import ROOT
+ROOT.RooCurve() # Apparently important, this blows away 
+                # some MPI things if it is instantiated later
 import sys
 import cPickle as pickle
-from pyWIMP.DMModels.base_model import BaseVariables
-from pyWIMP.DMModels.wimp_model import WIMPModel
-from pyWIMP.DMModels.low_energy_background import TestModel
-import pyWIMP.Calculation.DataCalcVerification as dcv 
+from mpi4py import MPI
+import math
 
-
-if len(sys.argv) != 2: 
-    sys.exit(1)
 
 
 #####################################
@@ -18,55 +15,72 @@ Initialization stuff
 """
 #####################################
 
-#ROOT.RooMsgService.instance().setSilentMode(True)
-#ROOT.RooMsgService.instance().setGlobalKillBelow(5)
-efficiency = ROOT.RooRealVar("efficiency", "efficiency",
-                             0, 1)
-m = ROOT.RooRealVar("m","m", 100)
+ROOT.RooMsgService.instance().setSilentMode(True)
+ROOT.RooMsgService.instance().setGlobalKillBelow(5)
+efficiency = ROOT.RooRealVar("efficiency", 
+							 "efficiency",
+                             0.85, 0, 1)
+efficiency_sigma = ROOT.RooRealVar("efficiency_sigma", 
+								   "efficiency_sigma",
+                             	   0.075, 0, 1)
 
-zero_offset = ROOT.RooRealVar("zero_offset", "zero_offset", 0)
-background = ROOT.RooRealVar("background", "background", 0, 10)
-tau = ROOT.RooRealVar("tau", "tau", 3.5)
-signal = ROOT.RooRealVar("signal", "signal", 0, 10)
+background = ROOT.RooRealVar("background", 
+							 "background", 
+							 0, 20)
 
-x = ROOT.RooRealVar("x", "x", 0, 10)
-y = ROOT.RooRealVar("y", "y", 0, 10)
+background_sigma = ROOT.RooRealVar("background_sigma", 
+                                   "background_sigma",
+                                   0.075, 0, 1)
 
-linear_var = ROOT.RooRealVar("pois_var", "pois_var", signal, efficiency, signal)
-bkgd_linear_var = ROOT.RooRealVar("bkgd_var", "bkgd_var", background, tau, zero_offset)
+# Signal, test variable
+signal = ROOT.RooRealVar(	"signal", 
+							"signal", 
+							-2, 20)
 
-bkg_pois = ROOT.RooPoisson("bkg_pois", "bkg_pois", y, bkgd_linear_var) 
-pois = ROOT.RooPoisson("pois", "pois", x, linear_var) 
+x = ROOT.RooRealVar("x", "x", 0, 20)
+x.setBins(int(x.getMax()-x.getMin()))
+y = ROOT.RooRealVar("y", "y", 0, 20)
+z = ROOT.RooRealVar("z", "z", 0, 1)
 
-variables = ROOT.RooArgSet(basevars.get_energy())
-# Following is the number of events
-# Remember model_normal is in pb, so this is
-# useful for setting things correctly later.
-# This give us the expected events for a
-# model_normal of 1
-scaler = model_extend.expectedEvents(variables)
-# Add the models together to get a final, extended model
-i = 0
-extended_models = []
-while 1:
-    amod = list_of_models.at(i)
-    avar = list_of_coefficients.at(i)
-    if not amod: break
-    i += 1
-    extend = ROOT.RooExtendPdf("extend%s" % amod.GetName(),
-                               "extend%s" % amod.GetName(),
-                               amod, avar)
-    extended_models.append(extend)
-temp_list = ROOT.RooArgList()
-temp_list.add(model_extend)
-for amod in extended_models:
-    temp_list.add(amod)
+linear_var = ROOT.RooLinearVar("pois_var", 
+                               "pois_var", 
+                               signal, 
+                               efficiency, 
+                               background)
 
-fit_model = ROOT.RooAddPdf("b+s",
-                           "Background + Signal",
-                           temp_list)
-test_variable = model_normal
+bkg_gaus = ROOT.RooGaussian("bkg_gaus", 
+                            "bkg_gaus", 
+                            y, 
+							background, 
+							background_sigma) 
 
+eff_gaus = ROOT.RooGaussian("eff_gaus", 
+							"eff_gaus", 
+							z, 
+							efficiency, 
+							efficiency_sigma) 
+
+pois = ROOT.RooPoisson(	"pois", 
+						"pois", 
+						x, 
+						linear_var) 
+
+fit_model = ROOT.RooProdPdf("fit_model", "fit_model", 
+                            ROOT.RooArgList(pois, bkg_gaus, eff_gaus))
+                            
+
+# This shouldn't be necessary, but for some reason some items go out of
+# scope.  This keeps this from happening.
+list_of_everything = [ efficiency, efficiency_sigma, 
+                       background, background_sigma,
+                       signal, x, y, z, linear_var,
+                       bkg_gaus, eff_gaus, pois, 
+                       fit_model ] 
+
+variables = ROOT.RooArgSet(x, y, z)
+
+# Test variable is the signal
+test_variable = signal
 
 calc_system = dcv.DataCalcVerification()
 
@@ -75,32 +89,42 @@ calc_system = dcv.DataCalcVerification()
 MPI stuff
 """
 #####################################
+comm = MPI.COMM_WORLD
+sendbuf=[]
+root=0
 
+if comm.Get_rank()==0:
+    print("Using number of nodes: ", comm.Get_size())
+    number_of_jobs = comm.Get_size() - 1
+    number_of_iter = int(math.sqrt(number_of_jobs))
+    step_size = float(10)/(number_of_iter-1)
+    m= numpy.array([[(i*step_size, j*step_size) 
+           for i in range(number_of_iter)] 
+           for j in range(number_of_iter)])
+    m.shape=(number_of_jobs, 2)
+    sendbuf = m
 
-number_of_iter = 10
-step_size = float(exponential_total)/number_of_iter
-m=[i*step_size for i in range(number_of_iter)]
-
-c1 = ROOT.TCanvas()
-calc_system.set_canvas(c1)
-calc_system.set_debug(True)
+v = comm.scatter(sendobj=sendbuf,root=root)
 results = []
-for v in reversed(m):
-    test_variable.setVal(v/scaler)
-    exp_coef.setVal(exponential_total-v)
+if comm.Get_rank() != 0:
+    test_value, bgd_value = v
+    test_variable.setVal(test_value)
+    background.setVal(bgd_value)
+
     results = calc_system.scan_confidence_value_space_for_model(
                       fit_model, 
                       test_variable,
                       variables,
-                      total_entries,
+                      100,
                       1,
                       0.9)
-    results = (v/scaler, exponential_total-v, results)
+    results = (test_value, bgd_value, results)
     print "Finished: ", comm.Get_rank()
                       
 recvbuf = comm.gather(results,root=root)
 
-print "Finishing"
-afile = open('output_WM_%g.pkl' % wimp_mass, 'wb')
-pickle.dump(recvbuf, afile)
-afile.close()
+if comm.Get_rank()==0:
+    print "Finishing"
+    afile = open('output_Rolke_Test.pkl', 'wb')
+    pickle.dump(recvbuf, afile)
+    afile.close()
