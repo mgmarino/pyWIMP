@@ -5,9 +5,11 @@ ROOT.RooCurve() # Apparently important, this blows away
 import sys
 import cPickle as pickle
 from mpi4py import MPI
+import pyWIMP.Calculation.DataCalcVerification as dcv 
 import math
 
 
+job_number = int(sys.argv[1])
 
 #####################################
 """
@@ -15,27 +17,31 @@ Initialization stuff
 """
 #####################################
 
+total_MC_iterations = 1500
+
+ROOT.RooRandom.randomGenerator().SetSeed(0)
 ROOT.RooMsgService.instance().setSilentMode(True)
 ROOT.RooMsgService.instance().setGlobalKillBelow(5)
+
 efficiency = ROOT.RooRealVar("efficiency", 
-							 "efficiency",
+                             "efficiency",
                              0.85, 0, 1)
 efficiency_sigma = ROOT.RooRealVar("efficiency_sigma", 
-								   "efficiency_sigma",
-                             	   0.075, 0, 1)
+                                   "efficiency_sigma",
+                                    0.075, 0, 1)
 
 background = ROOT.RooRealVar("background", 
-							 "background", 
-							 0, 20)
+                             "background", 
+                             -2, 20)
 
 background_sigma = ROOT.RooRealVar("background_sigma", 
                                    "background_sigma",
                                    0.075, 0, 1)
 
 # Signal, test variable
-signal = ROOT.RooRealVar(	"signal", 
-							"signal", 
-							-2, 20)
+signal = ROOT.RooRealVar("signal", 
+                         "signal", 
+                         -2, 20)
 
 x = ROOT.RooRealVar("x", "x", 0, 20)
 x.setBins(int(x.getMax()-x.getMin()))
@@ -51,19 +57,19 @@ linear_var = ROOT.RooLinearVar("pois_var",
 bkg_gaus = ROOT.RooGaussian("bkg_gaus", 
                             "bkg_gaus", 
                             y, 
-							background, 
-							background_sigma) 
+                            background, 
+                            background_sigma) 
 
 eff_gaus = ROOT.RooGaussian("eff_gaus", 
-							"eff_gaus", 
-							z, 
-							efficiency, 
-							efficiency_sigma) 
+                            "eff_gaus", 
+                            z, 
+                            efficiency, 
+                            efficiency_sigma) 
 
-pois = ROOT.RooPoisson(	"pois", 
-						"pois", 
-						x, 
-						linear_var) 
+pois = ROOT.RooPoisson(    "pois", 
+                        "pois", 
+                        x, 
+                        linear_var) 
 
 fit_model = ROOT.RooProdPdf("fit_model", "fit_model", 
                             ROOT.RooArgList(pois, bkg_gaus, eff_gaus))
@@ -98,16 +104,18 @@ if comm.Get_rank()==0:
     number_of_jobs = comm.Get_size() - 1
     number_of_iter = int(math.sqrt(number_of_jobs))
     step_size = float(10)/(number_of_iter-1)
-    m= numpy.array([[(i*step_size, j*step_size) 
+    m= numpy.array([[(i*step_size+0.01, j*step_size) 
            for i in range(number_of_iter)] 
            for j in range(number_of_iter)])
     m.shape=(number_of_jobs, 2)
-    sendbuf = m
+    test = numpy.zeros((1,2))
+    sendbuf = numpy.concatenate((test, m))
 
 v = comm.scatter(sendobj=sendbuf,root=root)
 results = []
 if comm.Get_rank() != 0:
     test_value, bgd_value = v
+    print comm.Get_rank(), ": ", test_value, bgd_value
     test_variable.setVal(test_value)
     background.setVal(bgd_value)
 
@@ -116,7 +124,7 @@ if comm.Get_rank() != 0:
                       test_variable,
                       variables,
                       100,
-                      1,
+                      total_MC_iterations,
                       0.9)
     results = (test_value, bgd_value, results)
     print "Finished: ", comm.Get_rank()
@@ -124,7 +132,8 @@ if comm.Get_rank() != 0:
 recvbuf = comm.gather(results,root=root)
 
 if comm.Get_rank()==0:
+    recvbuf = recvbuf[1:]
     print "Finishing"
-    afile = open('output_Rolke_Test.pkl', 'wb')
+    afile = open('output_Rolke_Test_%i.pkl' % job_number, 'wb')
     pickle.dump(recvbuf, afile)
     afile.close()

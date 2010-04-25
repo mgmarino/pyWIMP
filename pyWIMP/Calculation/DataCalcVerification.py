@@ -91,18 +91,18 @@ class DataCalcVerification(DataCalculation.DataCalculation):
 
 
         # Scan to make sure that the likelihood
-        model_amplitude.setConstant(True)
-        model_amplitude.setVal(max_range)
-        minuit.migrad()
-
-        # Multiply by two here to make sure we get a large range
-        while nll.getVal()-min_nll < 2*conf_level: 
-            max_range += 100
-            model_amplitude.setVal(max_range)
-            if model_amplitude.getVal() == model_amplitude.getMax():
-                self.logging("Resetting maximum:", model_amplitude.getMax() )
-                model_amplitude.setMax(model_amplitude.getVal()*2)
-            minuit.migrad()
+        #model_amplitude.setConstant(True)
+        #model_amplitude.setVal(max_range)
+        #minuit.migrad()
+        #
+        ## Multiply by two here to make sure we get a large range
+        #while nll.getVal()-min_nll < 2*conf_level: 
+        #    max_range += 100
+        #    model_amplitude.setVal(max_range)
+        #    if model_amplitude.getVal() == model_amplitude.getMax():
+        #        self.logging("Resetting maximum:", model_amplitude.getMax() )
+        #        model_amplitude.setMax(model_amplitude.getVal()*2)
+        #    minuit.migrad()
 
         # Reset it back to the original position
         model_amplitude.setVal(0)
@@ -150,7 +150,8 @@ class DataCalcVerification(DataCalculation.DataCalculation):
         step_size = 0.01
         
         unbounded_start = best_fit 
-        while unbounded_curve.Eval(unbounded_start) < conf_level: unbounded_start += step_size
+        while (unbounded_curve.Eval(unbounded_start) < conf_level and 
+               unbounded_start <= model_amplitude.getMax()): unbounded_start += step_size
         unbounded_upper_limit = unbounded_start 
 
         unbounded_start =  best_fit
@@ -210,7 +211,7 @@ class DataCalcVerification(DataCalculation.DataCalculation):
         list_of_values = []
         iter = 1
         for data_model in data_list:
-            print "Iteration: %i of %i" % (iter, number_iterations) 
+            self.logging("Iteration: %i of %i" % (iter, number_iterations))
             iter += 1
             get_val = self.find_confidence_value_for_model(
                 model, 
