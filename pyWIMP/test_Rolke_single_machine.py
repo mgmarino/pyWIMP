@@ -82,7 +82,7 @@ c1 = ROOT.TCanvas()
 calc_system.set_canvas(c1)
 calc_system.set_debug(True)
 results = []
-for v, bgd in [(1.42857142857, 0)]:
+for v, bgd in [(0.1, 0)]:
 #reversed(m):
     test_variable.setVal(v)
     background.setVal(bgd)

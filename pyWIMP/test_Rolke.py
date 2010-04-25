@@ -103,10 +103,15 @@ if comm.Get_rank()==0:
     print("Using number of nodes: ", comm.Get_size())
     number_of_jobs = comm.Get_size() - 1
     number_of_iter = int(math.sqrt(number_of_jobs))
-    step_size = float(10)/(number_of_iter-1)
-    m= numpy.array([[(i*step_size, j*step_size) 
-           for i in range(number_of_iter)] 
-           for j in range(number_of_iter)])
+    number_of_iter_bkg = 8 
+    number_of_iter_signal = number_of_jobs/number_of_iter_bkg
+    step_size_bkg = float(10)/(number_of_iter_bkg-1)
+    step_size_signal = float(10)/(number_of_iter_signal-1)
+    m= numpy.array([[(i*step_size_signal+0.1, j*step_size_bkg) 
+       for i in xrange(number_of_iter_signal)] 
+       for j in xrange(number_of_iter_bkg)])
+
+
     m.shape=(number_of_jobs, 2)
     test = numpy.zeros((1,2))
     sendbuf = numpy.concatenate((test, m))
