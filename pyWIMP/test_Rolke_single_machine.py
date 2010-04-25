@@ -23,15 +23,15 @@ efficiency = ROOT.RooRealVar("efficiency", "efficiency",
 efficiency_sigma = ROOT.RooRealVar("efficiency_sigma", "efficiency_sigma",
                              0.075, 0, 1)
 
-background = ROOT.RooRealVar("background", "background", 0, 20)
+background = ROOT.RooRealVar("background", "background", -2, 20)
 background_sigma = ROOT.RooRealVar("background_sigma", 
                                    "background_sigma",
                                    0.075, 0, 1)
 signal = ROOT.RooRealVar("signal", "signal", -2, 10)
 
-x = ROOT.RooRealVar("x", "x", 0, 20)
+x = ROOT.RooRealVar("x", "x", -2, 20)
 x.setBins(int(x.getMax()-x.getMin()))
-y = ROOT.RooRealVar("y", "y", 0, 20)
+y = ROOT.RooRealVar("y", "y", -2, 20)
 #x.setBins(int(x.getMax()-x.getMin()))
 z = ROOT.RooRealVar("z", "z", 0, 1)
 
@@ -79,10 +79,11 @@ m= numpy.array([[(i*step_size, j*step_size)
 m.shape=(number_of_jobs, 2)
 
 c1 = ROOT.TCanvas()
-#calc_system.set_canvas(c1)
-#calc_system.set_debug(True)
+calc_system.set_canvas(c1)
+calc_system.set_debug(True)
 results = []
-for v, bgd in reversed(m):
+for v, bgd in [(1.42857142857, 0)]:
+#reversed(m):
     test_variable.setVal(v)
     background.setVal(bgd)
     results = calc_system.scan_confidence_value_space_for_model(
@@ -92,19 +93,17 @@ for v, bgd in reversed(m):
                       100,
                       1,
                       0.9)
-    #bf, upper, lower, bound, an_array = results[0]
-    bf, upper, lower, bound = results[0]
-    """
+    bf, upper, lower, bound, an_array = results[0]
+    #bf, upper, lower, bound = results[0]
     curve = ROOT.RooCurve()
     [curve.addPoint(x,y) for x, y in an_array]
     curve.Draw("APL")
     hist = curve.GetHistogram()
-    hist.SetMaximum(2)
+    hist.SetMaximum(2000)
     hist.SetMinimum(-0.5)
     hist.Draw()
     curve.Draw("L")
     c1.Update()
-    """
     print bf, upper, lower, bound, v
     raw_input("E")
     #results = (v, 10-v, results)

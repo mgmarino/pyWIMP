@@ -43,9 +43,9 @@ signal = ROOT.RooRealVar("signal",
                          "signal", 
                          -2, 20)
 
-x = ROOT.RooRealVar("x", "x", 0, 20)
+x = ROOT.RooRealVar("x", "x", -2, 20)
 x.setBins(int(x.getMax()-x.getMin()))
-y = ROOT.RooRealVar("y", "y", 0, 20)
+y = ROOT.RooRealVar("y", "y", -2, 20)
 z = ROOT.RooRealVar("z", "z", 0, 1)
 
 linear_var = ROOT.RooLinearVar("pois_var", 
@@ -104,7 +104,7 @@ if comm.Get_rank()==0:
     number_of_jobs = comm.Get_size() - 1
     number_of_iter = int(math.sqrt(number_of_jobs))
     step_size = float(10)/(number_of_iter-1)
-    m= numpy.array([[(i*step_size+0.01, j*step_size) 
+    m= numpy.array([[(i*step_size, j*step_size) 
            for i in range(number_of_iter)] 
            for j in range(number_of_iter)])
     m.shape=(number_of_jobs, 2)
