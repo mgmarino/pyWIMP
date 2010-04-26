@@ -18,6 +18,7 @@ Initialization stuff
 #####################################
 
 total_MC_iterations = 1500
+#total_MC_iterations = 1
 
 ROOT.RooRandom.randomGenerator().SetSeed(0)
 ROOT.RooMsgService.instance().setSilentMode(True)
