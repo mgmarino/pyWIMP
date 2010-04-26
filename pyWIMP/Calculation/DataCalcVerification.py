@@ -162,7 +162,8 @@ class DataCalcVerification(DataCalculation.DataCalculation):
         bounded_limit = unbounded_upper_limit
         if best_fit < 0:
             bounded_start = bounded_curve.Eval(0) 
-            while bounded_curve.Eval(bounded_start) < conf_level: bounded_start += step_size
+            while (bounded_curve.Eval(bounded_start) < conf_level and 
+                   bounded_start <= model_amplitude.getMax()): bounded_start += step_size
             bounded_limit = bounded_start 
         
         # Now the first value in each of these should be the calculated limit
