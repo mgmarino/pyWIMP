@@ -20,8 +20,8 @@ Initialization stuff
 #####################################
 
 ROOT.RooRandom.randomGenerator().SetSeed(0)
-#ROOT.RooMsgService.instance().setSilentMode(True)
-#ROOT.RooMsgService.instance().setGlobalKillBelow(5)
+ROOT.RooMsgService.instance().setSilentMode(True)
+ROOT.RooMsgService.instance().setGlobalKillBelow(5)
 total_entries = 400 
 exponential_total = 190
 basevars = BaseVariables(0, 0.1444,0.5, 3.5) 
@@ -45,10 +45,12 @@ flat_coef = list_of_coefficients.at(
               list_of_coefficients.index("flat_coef_"))
 exp_coef.setVal(exponential_total)
 flat_coef.setVal(180)
+flat_coef.setMin(-5)
+exp_coef.setMin(-5)
 # Now set up the extended model
 model_normal = ROOT.RooRealVar("model_normal",
                                "WIMP-nucleus xs",
-                               1, 1e-15, total_entries,
+                               1, -10, total_entries,
                                "pb")
 
 model_extend = ROOT.RooExtendPdf("model_extend",
@@ -119,6 +121,8 @@ for v in reversed(m):
     curve.Draw("APL")
     c1.Update()
     print bf, upper, lower, bound, v/scaler
+    print "Unbound: ", (upper >= v/scaler and lower <= v/scaler)
+    print "Bound: ", (bound >= v/scaler and lower <= v/scaler)
     raw_input("E")
     results = (v/scaler, exponential_total-v, results)
                       
