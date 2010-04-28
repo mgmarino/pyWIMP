@@ -183,7 +183,11 @@ class DataCalcVerification(DataCalculation.DataCalculation):
             model_amplitude.setVal(best_fit)
             minuit.migrad()
             self.print_plot(model, data)
+            minuit.IsA().Destructor(minuit)
+            nll.IsA().Destructor(nll)
             return (best_fit, unbounded_upper_limit, unbounded_lower_limit, bounded_limit, output_list)
+        minuit.IsA().Destructor(minuit)
+        nll.IsA().Destructor(nll)
         return (best_fit, unbounded_upper_limit, unbounded_lower_limit, bounded_limit)
  
  
@@ -210,26 +214,27 @@ class DataCalcVerification(DataCalculation.DataCalculation):
         # Generate the full set here, because we want to 
         # make sure it's with the correct model distribution
 
-        data_list = [ model.generate(variables,  
-                        ROOT.RooFit.NumEvents(number_of_events),
-                        ROOT.RooFit.Extended(),
-                        ROOT.RooFit.Name("Data_" + str(i))) 
-                      for i in range(number_iterations) ]
-
-       
+        ROOT.RooTrace.active(True)
 
         # Perform the fit and find the limits
         list_of_values = []
         iter = 1
-        for data_model in data_list:
-            self.logging("Iteration: %i of %i" % (iter, number_iterations))
-            iter += 1
+        for iter in range(number_iterations):
+            self.logging("Iteration: %i of %i" % (iter+1, number_iterations))
+            data_model = model.generate(variables,  
+                            ROOT.RooFit.NumEvents(number_of_events),
+                            ROOT.RooFit.Extended(),
+                            ROOT.RooFit.Name("Data_" + str(iter))) 
+
+
             get_val = self.find_confidence_value_for_model(
                 model, 
                 data_model, 
                 model_amplitude, 
                 confidence_value/2,
                 print_level)
+            model.getVariables().readFromStream(ROOT.istringstream(var_cache.str()), False)
+            data_model.IsA().Destructor(data_model)
             
             if get_val is None: 
                 # There was an error somewhere downstream
@@ -244,6 +249,5 @@ class DataCalcVerification(DataCalculation.DataCalculation):
             list_of_values.append(get_val)
     
         # Reset the variables
-        model.getVariables().readFromStream(ROOT.istringstream(var_cache.str()), False)
         return list_of_values
 
