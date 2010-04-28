@@ -25,6 +25,7 @@ Initialization stuff
 
 ROOT.RooMsgService.instance().setSilentMode(True)
 ROOT.RooMsgService.instance().setGlobalKillBelow(5)
+total_mc_entries = 500
 total_entries = 400 
 exponential_total = 190
 basevars = BaseVariables(0, 0.1444,0.5, 3.5) 
@@ -68,6 +69,7 @@ variables = ROOT.RooArgSet(basevars.get_energy())
 # This give us the expected events for a
 # model_normal of 1
 scaler = model_extend.expectedEvents(variables)
+model_normal.setMax(total_entries/scaler)
 # Add the models together to get a final, extended model
 i = 0
 extended_models = []
@@ -120,7 +122,7 @@ if comm.Get_rank() != 0:
                       test_variable,
                       variables,
                       total_entries,
-                      1,
+                      total_mc_entries,
                       0.9)
     results = (v, v/scaler, exponential_total-v, results)
     print "Finished: ", comm.Get_rank()
