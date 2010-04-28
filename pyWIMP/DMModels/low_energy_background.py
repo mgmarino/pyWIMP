@@ -159,7 +159,7 @@ class TestModel(LowEnergyBackgroundModel):
         self.exp_constant_one = ROOT.RooRealVar("expo_const_one%s" % tag,
                                             "expo_const_one%s" % tag,
                                             #1./3, 0, 500)
-                                            -3, -100, 5)
+                                            -3, -100, -0.5)
         #self.exp_constant_one.removeMax()
         self.exp_constant_one.setError(0.5)
 

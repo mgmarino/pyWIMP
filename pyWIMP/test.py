@@ -45,8 +45,8 @@ flat_coef = list_of_coefficients.at(
               list_of_coefficients.index("flat_coef_"))
 exp_coef.setVal(exponential_total)
 flat_coef.setVal(180)
-flat_coef.setMin(-5)
-exp_coef.setMin(-5)
+#flat_coef.setMin(-5)
+#exp_coef.setMin(-5)
 # Now set up the extended model
 model_normal = ROOT.RooRealVar("model_normal",
                                "WIMP-nucleus xs",
@@ -65,6 +65,7 @@ variables = ROOT.RooArgSet(basevars.get_energy())
 # This give us the expected events for a
 # model_normal of 1
 scaler = model_extend.expectedEvents(variables)
+model_normal.setMax(total_entries/scaler)
 # Add the models together to get a final, extended model
 i = 0
 extended_models = []
@@ -97,7 +98,7 @@ MPI stuff
 #####################################
 
 
-number_of_iter = 10
+number_of_iter = 32
 step_size = float(exponential_total)/number_of_iter
 m=[i*step_size for i in range(number_of_iter)]
 
@@ -105,7 +106,7 @@ c1 = ROOT.TCanvas()
 calc_system.set_canvas(c1)
 calc_system.set_debug(True)
 results = []
-for v in reversed(m):
+for v in m:#reversed(m):
     test_variable.setVal(v/scaler)
     exp_coef.setVal(exponential_total-v)
     results = calc_system.scan_confidence_value_space_for_model(

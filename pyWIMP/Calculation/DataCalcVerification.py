@@ -81,6 +81,7 @@ class DataCalcVerification(DataCalculation.DataCalculation):
         #   minuit.migrad()
         min_nll = nll.getVal()
 
+        best_fit_value = model_amplitude.getVal()
         # Determine the range to scan over
         min_value = model_amplitude.getVal() - distance_from_min 
         if min_value > 0: min_value = 0
@@ -91,18 +92,18 @@ class DataCalcVerification(DataCalculation.DataCalculation):
 
 
         # Scan to make sure that the likelihood
-        #model_amplitude.setConstant(True)
-        #model_amplitude.setVal(max_range)
-        #minuit.migrad()
+        model_amplitude.setConstant(True)
+        model_amplitude.setVal(max_range)
+        minuit.migrad()
         #
         ## Multiply by two here to make sure we get a large range
-        #while nll.getVal()-min_nll < 2*conf_level: 
-        #    max_range += 100
-        #    model_amplitude.setVal(max_range)
-        #    if model_amplitude.getVal() == model_amplitude.getMax():
-        #        self.logging("Resetting maximum:", model_amplitude.getMax() )
-        #        model_amplitude.setMax(model_amplitude.getVal()*2)
-        #    minuit.migrad()
+        while nll.getVal()-min_nll < 2*conf_level: 
+            max_range += 100
+            model_amplitude.setVal(max_range)
+            if model_amplitude.getVal() == model_amplitude.getMax():
+                self.logging("Resetting maximum:", model_amplitude.getMax() )
+                model_amplitude.setMax(model_amplitude.getVal()*2)
+            minuit.migrad()
 
         # Reset it back to the original position
         model_amplitude.setVal(0)
@@ -121,12 +122,20 @@ class DataCalcVerification(DataCalculation.DataCalculation):
         min_point = 0
         for j in range(number_of_points): 
             model_amplitude.setVal(test_value)
-            minuit.migrad()
-            output_list[j] = [test_value, nll.getVal()]
             if self.debug:  
                 self.logging("Performing: ", model_amplitude.getVal())
-            if nll.getVal() < min_nll:  
-                min_nll = nll.getVal() 
+            minuit_val = minuit.migrad()
+            saved = minuit.save()
+            
+            if self.debug:  
+                self.logging("Saved: ", saved.minNll())
+                self.logging("Minuit: ", minuit_val)
+                self.logging("Test value: ", test_value)
+                self.logging("NLL: ", nll.getVal())
+            min_val = saved.minNll()
+            output_list[j] = [test_value, min_val]
+            if min_val < min_nll:  
+                min_nll = min_val 
                 min_point = j
             test_value += step_size
             
@@ -186,7 +195,7 @@ class DataCalcVerification(DataCalculation.DataCalculation):
                                               cl):
     
         print_level = -1
-        if self.debug: print_level = 3
+        if self.debug: print_level = 1
 
         confidence_value = ROOT.TMath.ChisquareQuantile(cl, 1) 
 

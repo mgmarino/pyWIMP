@@ -49,8 +49,8 @@ flat_coef = list_of_coefficients.at(
               list_of_coefficients.index("flat_coef_"))
 exp_coef.setVal(exponential_total)
 flat_coef.setVal(180)
-flat_coef.setMin(-5)
-exp_coef.setMin(-5)
+#flat_coef.setMin(-5)
+#exp_coef.setMin(-5)
 # Now set up the extended model
 model_normal = ROOT.RooRealVar("model_normal",
                                "WIMP-nucleus xs",
