@@ -125,7 +125,7 @@ class DataCalcVerification(DataCalculation.DataCalculation):
             if self.debug:  
                 self.logging("Performing: ", model_amplitude.getVal())
             minuit_val = minuit.migrad()
-            saved = minuit.save()
+            saved = minuit.save('temp')
             
             if self.debug:  
                 self.logging("Saved: ", saved.minNll())
@@ -138,6 +138,7 @@ class DataCalcVerification(DataCalculation.DataCalculation):
                 min_nll = min_val 
                 min_point = j
             test_value += step_size
+            saved.IsA().Destructor(saved)
             
         output_list -= [0, min_nll]
 
