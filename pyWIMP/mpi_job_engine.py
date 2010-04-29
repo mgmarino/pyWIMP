@@ -2,6 +2,7 @@ import numpy
 import ROOT
 ROOT.RooCurve() # Apparently important, this blows away 
                 # some MPI things if it is instantiated later
+ROOT.gROOT.SetBatch()
 
 import sys
 import cPickle as pickle
@@ -26,6 +27,7 @@ Initialization stuff
 ROOT.RooMsgService.instance().setSilentMode(True)
 ROOT.RooMsgService.instance().setGlobalKillBelow(5)
 total_mc_entries = 500
+#total_mc_entries = 10
 total_entries = 400 
 exponential_total = 190
 basevars = BaseVariables(0, 0.1444,0.5, 3.5) 
@@ -111,8 +113,9 @@ if comm.Get_rank()==0:
     m=[(i-1)*step_size if i > 0 else 0 for i in range(comm.Get_size())]
     sendbuf=m
 
-v=comm.scatter(sendobj=sendbuf,root=root)
-
+print "Scatter for: ", comm.Get_rank()
+v=comm.scatter(sendbuf,root)
+print "Go for: ", comm.Get_rank()
 results = []
 if comm.Get_rank() != 0:
     test_variable.setVal(v/scaler)
@@ -124,13 +127,15 @@ if comm.Get_rank() != 0:
                       total_entries,
                       total_mc_entries,
                       0.9)
-    results = (v, v/scaler, exponential_total-v, results)
-    print "Finished: ", comm.Get_rank()
-                      
-recvbuf = comm.gather(results,root=root)
+results = (v, v/scaler, exponential_total-v, results)
+
+print "Finished: ", comm.Get_rank()
+recvbuf = comm.gather(results,root)
+print "Sent: ", comm.Get_rank()
 
 if comm.Get_rank()==0:
     print "Finishing"
     afile = open('output_WM_%g.pkl' % wimp_mass, 'wb')
+    recvbuf = recvbuf[1:]
     pickle.dump(recvbuf, afile)
     afile.close()
