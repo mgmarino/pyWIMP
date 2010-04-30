@@ -131,9 +131,12 @@ class DataCalculation(ExclusionCalculation.ExclusionCalculation):
                 
             if debug:
                 self.print_plot(model, data, str(i))
+            var_cache = ROOT.ostringstream()
+            model.getVariables().writeToStream(var_cache, False)
             output_list.append((i, res))
             if res.minNll() < orig:  orig = res.minNll()
             output_dict[str(i)] = res 
+            output_dict[str(i) + 'vars'] = var_cache.str() 
             
         [pll_curve.addPoint(i, res.minNll() - orig) for i, res in output_list]
         output_dict['first_fit'] = first_res
