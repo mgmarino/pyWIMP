@@ -81,7 +81,7 @@ class DataCalculation(ExclusionCalculation.ExclusionCalculation):
 
         min_value = model_amplitude.getVal() - distance_from_min 
         if min_value > 0: min_value = 0
-        if min_value < model_amplitude.getMin(): model_amplitude.setMin(min_value)
+        if min_value < model_amplitude.getMin(): min_val = model_amplitude.getMin()
         
         max_range = model_amplitude.getVal() + 50
         if max_range < 10: max_range = 50
