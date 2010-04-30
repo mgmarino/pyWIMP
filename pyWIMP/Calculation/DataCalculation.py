@@ -136,7 +136,7 @@ class DataCalculation(ExclusionCalculation.ExclusionCalculation):
             output_list.append((i, res))
             if res.minNll() < orig:  orig = res.minNll()
             output_dict[str(i)] = res 
-            output_dict[str(i) + 'vars'] = var_cache.str() 
+            output_dict[str(i) + 'vars'] = ROOT.TObjString(var_cache.str())
             
         [pll_curve.addPoint(i, res.minNll() - orig) for i, res in output_list]
         output_dict['first_fit'] = first_res
