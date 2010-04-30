@@ -101,7 +101,7 @@ class DataCalcVerification(DataCalculation.DataCalculation):
             max_range += 100
             model_amplitude.setVal(max_range)
             if model_amplitude.getVal() == model_amplitude.getMax():
-                self.logging("Resetting maximum:", model_amplitude.getMax() )
+                if self.debug: self.logging("Resetting maximum:", model_amplitude.getMax() )
                 model_amplitude.setMax(model_amplitude.getVal()*2)
             minuit.migrad()
 
@@ -220,7 +220,7 @@ class DataCalcVerification(DataCalculation.DataCalculation):
         list_of_values = []
         iter = 1
         for iter in range(number_iterations):
-            self.logging("Iteration: %i of %i" % (iter+1, number_iterations))
+            if self.debug: self.logging("Iteration: %i of %i" % (iter+1, number_iterations))
             data_model = model.generate(variables,  
                             ROOT.RooFit.NumEvents(number_of_events),
                             ROOT.RooFit.Extended(),
@@ -241,10 +241,6 @@ class DataCalcVerification(DataCalculation.DataCalculation):
                 # or an interrupt was signalled
                 # Get out
                 break
-            #elif get_val == self.retry_error: 
-                # Calling function requested a retry
-            #    continue
-    
             # Store the results
             list_of_values.append(get_val)
     

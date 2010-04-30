@@ -87,7 +87,6 @@ class WIMPModel(BaseModel):
         if basevars.get_time().isConstant():
             time_dif = basevars.get_time().getMax() - basevars.get_time().getMin()
             # This is the time in units of years
-            print time_dif
             self.R_sub_0 = ROOT.RooFormulaVar("R_sub_0", "Base Rate",\
                            "365*%f*@4*@5*503.4/(@0*@1)*(@2/0.4)*(@3/230.)" % time_dif, \
                            #"503.4/(@0*@1)*(@2/0.4)*(@3/230.)", \
@@ -95,10 +94,8 @@ class WIMPModel(BaseModel):
                            self.density_of_dark_matter, self.v_sub_0,\
                            self.kilograms, self.dQ_over_dE))
             self.R_sub_0.setUnit("pb^{-1}") 
-            print self.R_sub_0.getVal()
 
         else:
-            print "Nope"
             self.R_sub_0 = ROOT.RooFormulaVar("R_sub_0", "Base Rate",\
                            "365*@4*@5*503.4/(@0*@1)*(@2/0.4)*(@3/230.)", \
                            ROOT.RooArgList(self.mass_of_target, self.mass_of_wimp,\
