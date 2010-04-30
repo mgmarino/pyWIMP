@@ -339,11 +339,6 @@ a subset of the TTree and pass into RooDataSet.
         if self.data_set_model.isWeighted(): print "Data set is weighted"
         print "Data set has %i entries." % self.data_set_model.sumEntries()
 
-        # The following has not been normalized to per-nucleon yet.
-        self.model_normal = ROOT.RooRealVar("model_normal", 
-                                            "WIMP-nucleus xs", 
-                                            1, 0, 100*self.data_set_model.sumEntries(), 
-                                            "pb")
         self.wimpClass = WIMPModel(self.basevars,
             mass_of_wimp=self.wimp_mass,
             kilograms = self.mass_of_detector,
@@ -359,10 +354,19 @@ a subset of the TTree and pass into RooDataSet.
                                                  "Background event number", 
                                                  0,
                                                  3)
+        # The following has not been normalized to per-nucleon yet.
+        self.model_normal = ROOT.RooRealVar("model_normal", 
+                                            "WIMP-nucleus xs", 
+                                            1, -10, 100, 
+                                            "pb")
         self.model_extend = ROOT.RooExtendPdf("model_extend", 
                                                "model_extend", 
                                                self.model, 
                                                self.model_normal)
+        # Getting the number of events for a model_normal of 1 
+        # This gives us number of events per model_normal value
+        scaler = self.model_extend.expectedEvents(self.variables)
+        self.model_normal.setMax(2*self.data_set_model.sumEntries()/scaler)
 
         self.calculation_class = \
             dat.DataCalculation(self.exit_manager)
@@ -394,9 +398,6 @@ a subset of the TTree and pass into RooDataSet.
         self.added_pdf = ROOT.RooAddPdf("b+s", 
                                         "Background + Signal", 
                                         temp_list)
-                                       #ROOT.RooArgList(
-                                       #self.background_extend, 
-                                       #self.model_extend))
         self.test_variable = self.model_normal
         self.fitting_model = self.added_pdf
         

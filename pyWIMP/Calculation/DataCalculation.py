@@ -59,18 +59,14 @@ class DataCalculation(ExclusionCalculation.ExclusionCalculation):
                                         debug = False,
                                         tolerance = 0.0001):
     
-        absolute_min = -100
-        number_of_points = 200
-        pars = model.getParameters(data)
-        expo_coef = pars.find("expo_const_one")
-        model_amplitude.setError(0.5)
-        model_amplitude.setVal(0)
-        model_amplitude.setMin(-10)
-        model_amplitude.setConstant(True)
-        nll = model.createNLL(data,
-                              ROOT.RooFit.Verbose(verbose))
+        number_of_points = 100
+        distance_from_min = 20.
+        #pars = model.getParameters(data)
+        nll = model.createNLL(data, ROOT.RooFit.Verbose(verbose))
        
         #model_amplitude.setVal(model_amplitude.getMin())
+        model_amplitude.setVal(0)
+        model_amplitude.setConstant(True)
         minuit = ROOT.RooMinuit(nll)
         minuit.migrad()
 
@@ -78,25 +74,20 @@ class DataCalculation(ExclusionCalculation.ExclusionCalculation):
         model_amplitude.setVal(0)
         model_amplitude.setConstant(False)
         minuit.migrad()
-
-        distance_from_min = 20.
-        while math.fabs(model_amplitude.getMin() - model_amplitude.getVal()) < distance_from_min: 
-           model_amplitude.setMin(model_amplitude.getMin() - distance_from_min) 
-           if model_amplitude.getMin() < absolute_min: break
-           minuit.migrad()
+        min_nll = nll.getVal()
+        best_fit_value = model_amplitude.getVal()
 
         if conf_level == 0: return None 
 
-        min_value = model_amplitude.getVal() - 100 
-        if min_value < model_amplitude.getMin(): model_amplitude.setMin(min_value)
+        min_value = model_amplitude.getVal() - distance_from_min 
         if min_value > 0: min_value = 0
+        if min_value < model_amplitude.getMin(): model_amplitude.setMin(min_value)
         
-        max_range = model_amplitude.getVal() + 100
-        if max_range < 100: max_range = 100
+        max_range = model_amplitude.getVal() + 50
+        if max_range < 10: max_range = 50
 
 
         # Ensure that we are going 
-        min_nll = nll.getVal()
 
         model_amplitude.setConstant(True)
         model_amplitude.setVal(max_range)
@@ -114,7 +105,6 @@ class DataCalculation(ExclusionCalculation.ExclusionCalculation):
         minuit.migrad()
 
         first_res = minuit.save()
-        first_res.Print('v')
 
         output_list = []
         pll_curve = ROOT.RooCurve()
@@ -127,35 +117,29 @@ class DataCalculation(ExclusionCalculation.ExclusionCalculation):
         for i in numpy.arange(min_value, max_range + 1., (max_range - min_value)/number_of_points):
             print "Perfoming: ", i 
             model_amplitude.setVal(i)
-            j = 0
-            while 1:
-                minuit.migrad()
-                res = minuit.save(str(i)) 
-                expo_coef.setConstant(False) 
-                if j == 1: break
-                if math.fabs(res.correlation('exp_coef_', 'expo_const_one')) > 0.98:
-                    expo_coef.setConstant(True) 
-                    print "Set constant."
-                else: break
-                j += 1
+            #j = 0
+            #while 1:
+            minuit.migrad()
+            res = minuit.save(str(i)) 
+            #expo_coef.setConstant(False) 
+            #if j == 1: break
+            #if math.fabs(res.correlation('exp_coef_', 'expo_const_one')) > 0.98:
+            #    expo_coef.setConstant(True) 
+            #    print "Set constant."
+            #else: break
+            #j += 1
                 
             if debug:
                 self.print_plot(model, data, str(i))
-            print "Status, ", res.status()
             output_list.append((i, res))
             if res.minNll() < orig:  orig = res.minNll()
             output_dict[str(i)] = res 
             
+        [pll_curve.addPoint(i, res.minNll() - orig) for i, res in output_list]
         output_dict['first_fit'] = first_res
-        first_res.Print('v')
-
-        for i, res in output_list:
-            model_amplitude.setVal(i)
-            print i, res.minNll() - orig, res.minNll()
-            pll_curve.addPoint(i, res.minNll() - orig)
-       
-
         output_dict['pll_curve'] = pll_curve
+        first_res.Print('v')
+       
         return output_dict
  
     def scan_confidence_value_space_for_model(self, 
