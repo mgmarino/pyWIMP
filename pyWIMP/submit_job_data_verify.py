@@ -7,11 +7,11 @@ import numpy
 # First the vitals of the job
 queue = ["default", "scavenge"]
 sens_home = "/share/home/mgmarino/sensitivity/SensitivityCalculation"
-output_dir = "/share/home/mgmarino/DataVerify"
-path_of_results = sens_home
+output_dir = "/share/home/mgmarino/DataVerify3"
+path_of_results = output_dir 
 cores = 8
 nodes = 2
-hours, minutes, seconds = ("6", "00", "00")
+hours, minutes, seconds = ("7", "00", "00")
 
 base_dir = "/share/home/mgmarino/FitBegeData/output_data_sets"
 all_root_files = glob.glob("%s/output_for_data_verification/results_rt_99/*.root" % base_dir)
@@ -46,7 +46,7 @@ qsub \\
   -l walltime=%s:%s:%s\\
   -e %s/output_%s_job_%s.err\\
   -o %s/output_%s_job_%s.out\\
-        """ % (file_basename, job, queue[j%2], nodes, cores,
+        """ % (file_basename, job, queue[job%2], nodes, cores,
                hours, minutes, seconds,
                path_of_results, file_basename, job,
                path_of_results, file_basename, job), 

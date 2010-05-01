@@ -70,10 +70,11 @@ Initialization stuff
 """
 #####################################
 
+ROOT.RooRandom.randomGenerator().SetSeed(0)
 ROOT.RooMsgService.instance().setSilentMode(True)
 ROOT.RooMsgService.instance().setGlobalKillBelow(5)
 total_mc_entries = 500
-#total_mc_entries = 10
+total_mc_entries = 600
 total_entries = 400 
 
 basevars = BaseVariables(0, 0.1444,0.5, 3.5) 
@@ -163,15 +164,19 @@ if comm.Get_rank()==0:
     step_size = int((len(string_np))/(number))
     # The last slice just prunes the end
     m =  string_np[0::step_size][:number]
-    sendbuf = numpy.concatenate(([''], m))
+    temp =  string_np[0::len(string_np)+1]
+    print len(temp)
+    sendbuf = numpy.concatenate((temp, m))
 
 print "Scatter for: ", comm.Get_rank()
 var_cache=comm.scatter(sendbuf,root)
-print "Go for: ", comm.Get_rank()
+print "Go for: ", comm.Get_rank(), '\n', var_cache
 results = []
+val_of_mod_amplitude = 0
 if comm.Get_rank() != 0:
     temp = ROOT.istringstream(var_cache)
     fit_model.getVariables().readFromStream(temp, False)
+    val_of_mod_amplitude = model_normal.getVal()
     results = calc_system.scan_confidence_value_space_for_model(
                       fit_model, 
                       test_variable,
@@ -179,7 +184,7 @@ if comm.Get_rank() != 0:
                       total_entries,
                       total_mc_entries,
                       0.9)
-results = (v, v/scaler, exponential_total-v, results)
+results = (val_of_mod_amplitude, results)
 
 print "Finished: ", comm.Get_rank()
 recvbuf = comm.gather(results,root)

@@ -24,9 +24,10 @@ Initialization stuff
 """
 #####################################
 
+ROOT.RooRandom.randomGenerator().SetSeed(0)
 ROOT.RooMsgService.instance().setSilentMode(True)
 ROOT.RooMsgService.instance().setGlobalKillBelow(5)
-total_mc_entries = 500
+total_mc_entries = 1000
 #total_mc_entries = 10
 total_entries = 400 
 exponential_total = 190
