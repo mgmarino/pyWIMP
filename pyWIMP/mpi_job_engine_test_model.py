@@ -74,10 +74,10 @@ ROOT.RooRandom.randomGenerator().SetSeed(0)
 ROOT.RooMsgService.instance().setSilentMode(True)
 ROOT.RooMsgService.instance().setGlobalKillBelow(5)
 total_mc_entries = 500
-total_mc_entries = 600
-total_entries = 400 
+total_mc_entries = 400
+total_entries = 491 
 
-basevars = BaseVariables(0, 0.1444,0.5, 3.5) 
+basevars = BaseVariables(0, 0.14887063655,0.5, 3.5) 
 basevars.get_time().setConstant(True)
 
 # Set up the WIMP class
