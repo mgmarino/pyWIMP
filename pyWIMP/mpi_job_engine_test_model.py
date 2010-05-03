@@ -75,7 +75,6 @@ ROOT.RooMsgService.instance().setSilentMode(True)
 ROOT.RooMsgService.instance().setGlobalKillBelow(5)
 total_mc_entries = 500
 total_mc_entries = 600
-total_entries = 400 
 
 basevars = BaseVariables(0, 0.1444,0.5, 3.5) 
 basevars.get_time().setConstant(True)
@@ -86,6 +85,7 @@ wimp_class = WIMPModel(basevars,
                        kilograms=0.4,
                        constant_quenching=False)
 model = wimp_class.get_model()
+normalization = model.get_normalization()
 # Set up the background class
 low_energy = LowEnergyBackgroundModel(basevars)
 low_energy_model = low_energy.get_model()
@@ -177,6 +177,7 @@ if comm.Get_rank() != 0:
     temp = ROOT.istringstream(var_cache)
     fit_model.getVariables().readFromStream(temp, False)
     val_of_mod_amplitude = model_normal.getVal()
+    total_entries = int(fit_model.expectedEvents(variables)) + 1
     results = calc_system.scan_confidence_value_space_for_model(
                       fit_model, 
                       test_variable,
@@ -184,7 +185,7 @@ if comm.Get_rank() != 0:
                       total_entries,
                       total_mc_entries,
                       0.9)
-results = (val_of_mod_amplitude, results)
+results = (val_of_mod_amplitude, normalization, results)
 
 print "Finished: ", comm.Get_rank()
 recvbuf = comm.gather(results,root)
