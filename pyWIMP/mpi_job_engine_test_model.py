@@ -85,7 +85,7 @@ wimp_class = WIMPModel(basevars,
                        kilograms=0.4,
                        constant_quenching=False)
 model = wimp_class.get_model()
-normalization = model.get_normalization()
+normalization = wimp_class.get_normalization().getVal()
 # Set up the background class
 low_energy = LowEnergyBackgroundModel(basevars)
 low_energy_model = low_energy.get_model()
@@ -94,7 +94,7 @@ list_of_models, list_of_coefficients = low_energy.get_list_components()
 background_normal = ROOT.RooRealVar("flat_normal", 
                                     "Background event number", 
                                     0,
-                                    total_entries)
+                                    1000)
 background_extend = ROOT.RooExtendPdf("background_extend", 
                                                    "background_extend", 
                                                    low_energy_model, 
@@ -106,7 +106,7 @@ background_extend = ROOT.RooExtendPdf("background_extend",
 # Now set up the extended model
 model_normal = ROOT.RooRealVar("model_normal",
                                "WIMP-nucleus xs",
-                               1, -10, total_entries,
+                               1, -10, 1000,
                                "pb")
 
 model_extend = ROOT.RooExtendPdf("model_extend",
@@ -121,7 +121,7 @@ variables = ROOT.RooArgSet(basevars.get_energy())
 # This give us the expected events for a
 # model_normal of 1
 scaler = model_extend.expectedEvents(variables)
-model_normal.setMax(total_entries/scaler)
+model_normal.setMax(1000/scaler)
 # Add the models together to get a final, extended model
 i = 0
 extended_models = []
@@ -182,7 +182,7 @@ if comm.Get_rank() != 0:
                       fit_model, 
                       test_variable,
                       variables,
-                      total_entries,
+                      0,
                       total_mc_entries,
                       0.9)
 results = (val_of_mod_amplitude, normalization, results)
