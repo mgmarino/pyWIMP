@@ -9,3 +9,4 @@ config.status
 pyWIMP/lib*
 *.depend
 lib*
+.DS_Store
