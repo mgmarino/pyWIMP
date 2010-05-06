@@ -101,7 +101,8 @@ class LowEnergyBackgroundModel(FittingModel):
         self.coefficienct_list = ROOT.RooArgList()
         zn = self.saved_pdf[1][0]
         ge = self.saved_pdf[0][0]
-        ratio_pdf = ROOT.RooAddPdf("Ge+Zn", "Ge+Zn", zn, ge, self.zn_ge_relative_amplitude)
+        ratio_pdf = ROOT.RooAddPdf("Ge+Zn", "Ge+Zn", zn, ge, 
+                                    self.zn_ge_relative_amplitude)
         new_amplitude = ROOT.RooRealVar("lline_amp", "lline_amp",
                                              1e-15, 10000) 
         self.saved_pdf.append((ratio_pdf, new_amplitude))
