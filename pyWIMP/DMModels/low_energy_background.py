@@ -12,8 +12,10 @@ class FittingModel(BaseModel):
     def __init__(self, \
                  basevars,
                  use_rel = False,
-                 erfc_on = False):
+                 erfc_on = False,
+                 use_ratio = False):
         BaseModel.__init__(self, basevars)
+        self.use_ratio = use_ratio
         self.initialize(basevars)
 
     def initialize(self, basevars):
@@ -90,28 +92,24 @@ class LowEnergyBackgroundModel(FittingModel):
             new_var = ROOT.RooRealVar("%s_ampl" % gamma.GetName(), 
                                       "%s_ampl" % gamma.GetName(), 
                                       1e-15, 10000)
-            #self.saved_pdf.append((self.added_pdf, new_var))
             self.saved_pdf.append((gamma, new_var))
-            #name = "%s_%s" % (self.added_pdf.GetName(), gamma.GetName())
-            #self.final_pdf = ROOT.RooAddPdf(name,
-            #                           name, 
-            #                           gamma, self.added_pdf, new_var)
-            #self.added_pdf = self.final_pdf
         self.pdf_list = ROOT.RooArgList()
         self.coefficienct_list = ROOT.RooArgList()
         zn = self.saved_pdf[1][0]
         ge = self.saved_pdf[0][0]
-        ratio_pdf = ROOT.RooAddPdf("Ge+Zn", "Ge+Zn", zn, ge, 
-                                    self.zn_ge_relative_amplitude)
-        new_amplitude = ROOT.RooRealVar("lline_amp", "lline_amp",
-                                             1e-15, 10000) 
-        self.saved_pdf.append((ratio_pdf, new_amplitude))
-        self.pdf_list.add(ratio_pdf)
-        self.coefficienct_list.add(new_amplitude)
-        #for gamma, var in self.saved_pdf:
-        #    self.pdf_list.add(gamma)
-        #    self.coefficienct_list.add(var)
-
+        if self.use_ratio:
+            ratio_pdf = ROOT.RooAddPdf("Ge+Zn", "Ge+Zn", zn, ge, 
+                                        self.zn_ge_relative_amplitude)
+            new_amplitude = ROOT.RooRealVar("lline_amp", "lline_amp",
+                                                 1e-15, 10000) 
+            self.saved_pdf.append((ratio_pdf, new_amplitude))
+            self.pdf_list.add(ratio_pdf)
+            self.coefficienct_list.add(new_amplitude)
+        else:
+            self.pdf_list.add(zn)
+            self.coefficienct_list.add(self.saved_pdf[1][1])
+            self.pdf_list.add(ge)
+            self.coefficienct_list.add(self.saved_pdf[0][1])
 
         tag = ""
         self.exp_constant_one = ROOT.RooRealVar("expo_const_one%s" % tag,
