@@ -350,13 +350,9 @@ a subset of the TTree and pass into RooDataSet.
         self.norm = self.wimpClass.get_normalization().getVal()
         self.is_initialized = True
 
-        self.background_normal = ROOT.RooRealVar("flat_normal", 
-                                                 "Background event number", 
-                                                 0,
-                                                 3)
         # The following has not been normalized to per-nucleon yet.
         self.model_normal = ROOT.RooRealVar("model_normal", 
-                                            "WIMP-nucleus xs", 
+                                            "WIMP-nucleus #sigma", 
                                             1, -10, 100, 
                                             "pb")
         self.model_extend = ROOT.RooExtendPdf("model_extend", 
@@ -371,15 +367,8 @@ a subset of the TTree and pass into RooDataSet.
         self.calculation_class = \
             dat.DataCalculation(self.exit_manager)
         self.low_energy = LowEnergyBackgroundModel(self.basevars)
-        self.low_energy_model = self.low_energy.get_model()
 
         list_of_models, list_of_coefficients = self.low_energy.get_list_components()
-        self.background_normal.setMax(2*self.data_set_model.sumEntries())
-        self.background_extend = ROOT.RooExtendPdf("background_extend", 
-                                                   "background_extend", 
-                                                   self.low_energy_model, 
-                                                   self.background_normal)
-
         self.extended_models = []
         i = 0
         while 1: 
