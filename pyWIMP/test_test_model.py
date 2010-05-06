@@ -73,7 +73,7 @@ Initialization stuff
 #ROOT.RooMsgService.instance().setGlobalKillBelow(5)
 total_mc_entries = 1
 #total_mc_entries = 10
-total_entries = 400 
+total_entries = 450 
 
 basevars = BaseVariables(0, 0.1444,0.5, 3.5) 
 basevars.get_time().setConstant(True)
@@ -152,8 +152,12 @@ sendbuf=[]
 root=0
 
 
-number = 10
+for var_cache in string_np:
+    print var_cache
+    #raw_input("E")
+number = 15
 step_size = int((len(string_np))/(number))
+print step_size
 # The last slice just prunes the end
 m =  string_np[0::step_size][:number]
 sendbuf=m
@@ -161,14 +165,19 @@ sendbuf=m
 c1 = ROOT.TCanvas()
 calc_system.set_canvas(c1)
 calc_system.set_debug(True)
-for var_cache in sendbuf:
+for var_cache in reversed(sendbuf):
+    print var_cache
+    #raw_input("E")
+
+for var_cache in reversed(sendbuf):
     temp = ROOT.istringstream(var_cache)
     fit_model.getVariables().readFromStream(temp, False)
+    print fit_model.expectedEvents(variables)
     results = calc_system.scan_confidence_value_space_for_model(
                       fit_model, 
                       test_variable,
                       variables,
-                      total_entries,
+                      0,
                       total_mc_entries,
                       0.9)
     bf, upper, lower, bound, an_array = results[0]
