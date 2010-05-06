@@ -366,7 +366,7 @@ a subset of the TTree and pass into RooDataSet.
 
         self.calculation_class = \
             dat.DataCalculation(self.exit_manager)
-        self.low_energy = LowEnergyBackgroundModel(self.basevars)
+        self.low_energy = LowEnergyBackgroundModel(self.basevars, use_ratio=False)
 
         list_of_models, list_of_coefficients = self.low_energy.get_list_components()
         self.extended_models = []
