@@ -180,7 +180,7 @@ class DataCalcVerification(DataCalculation.DataCalculation):
 
         if self.debug:
             print best_fit
-            model_amplitude.setVal(best_fit)
+            model_amplitude.setVal(bounded_limit)
             minuit.migrad()
             self.print_plot(model, data)
             minuit.IsA().Destructor(minuit)
