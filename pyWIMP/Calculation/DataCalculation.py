@@ -117,9 +117,8 @@ class DataCalculation(ExclusionCalculation.ExclusionCalculation):
         orig = 1e15 
         min_point = 0
         j = 0
-        step_size = (max_range - min_value)/number_of_points
+        step_size = (max_range - min_value)/(number_of_points-1)
         test_points = numpy.arange(min_value, max_range + step_size*0.5, step_size)
-        print number_of_points, len(test_points) 
         for test_val in test_points: 
             print "Performing: ", test_val 
             model_amplitude.setVal(test_val)
@@ -139,7 +138,8 @@ class DataCalculation(ExclusionCalculation.ExclusionCalculation):
             #model.getVariables().writeToStream(var_cache, False)
             #output_dict[str(i) + 'vars'] = ROOT.TObjString(var_cache.str())
             
-        [pll_curve.addPoint(i, res.minNll() - orig) for i, res in output_list]
+        [pll_curve.addPoint(output_list[i][0], output_list[i][1] - orig) 
+             for i in range(len(output_list))]
         output_dict['pll_curve'] = pll_curve
 
         output_list -= [0, min_nll]
