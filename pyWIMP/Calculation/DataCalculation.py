@@ -125,12 +125,12 @@ class DataCalculation(ExclusionCalculation.ExclusionCalculation):
             min_val = res.minNll()
                 
             if debug:
-                self.print_plot(model, data, str(i))
+                self.print_plot(model, data, str(test_val))
             output_list.append((test_val, res))
             if min_val < orig:  
                 orig = min_val 
                 min_point = j
-            output_dict[str(i)] = res 
+            output_dict[str(test_val)] = res 
             output_list[j] = [test_val, min_val]
             j += 1
             #var_cache = ROOT.ostringstream()
