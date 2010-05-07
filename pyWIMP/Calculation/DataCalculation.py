@@ -104,7 +104,6 @@ class DataCalculation(ExclusionCalculation.ExclusionCalculation):
         model_amplitude.setConstant(False)
         minuit.migrad()
 
-        first_res = minuit.save()
 
         output_list = []
         pll_curve = ROOT.RooCurve()
@@ -139,9 +138,7 @@ class DataCalculation(ExclusionCalculation.ExclusionCalculation):
             #output_dict[str(i) + 'vars'] = ROOT.TObjString(var_cache.str())
             
         [pll_curve.addPoint(i, res.minNll() - orig) for i, res in output_list]
-        output_dict['first_fit'] = first_res
         output_dict['pll_curve'] = pll_curve
-        first_res.Print('v')
 
         output_list -= [0, min_nll]
        
@@ -216,6 +213,13 @@ class DataCalculation(ExclusionCalculation.ExclusionCalculation):
         minuit.migrad()
         res = minuit.save("bounded_limit") 
         output_dict['bounded_limit_fit_results'] = res
+
+        # And finally get the best fit results, but bounding at 0 if it is below 0
+        if best_fit < 0: best_fit = 0
+        model_amplitude.setVal(best_fit)
+        minuit.migrad()
+        res = minuit.save("best_fit") 
+        output_dict['best_fit_fit_results'] = res
         
         # Return the results
         return output_dict
