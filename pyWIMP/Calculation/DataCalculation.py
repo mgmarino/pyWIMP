@@ -126,7 +126,6 @@ class DataCalculation(ExclusionCalculation.ExclusionCalculation):
                 
             if debug:
                 self.print_plot(model, data, str(test_val))
-            output_list.append((test_val, res))
             if min_val < orig:  
                 orig = min_val 
                 min_point = j
