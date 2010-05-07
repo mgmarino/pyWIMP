@@ -110,39 +110,114 @@ class DataCalculation(ExclusionCalculation.ExclusionCalculation):
         pll_curve = ROOT.RooCurve()
         pll_curve.SetName("pll_frac_plot") 
 
-        orig = first_res.minNll() 
         output_dict = {}
         
+        output_list = numpy.zeros((number_of_points, 2)) 
         model_amplitude.setConstant(True)
-        for i in numpy.arange(min_value, max_range + 1., (max_range - min_value)/number_of_points):
-            print "Perfoming: ", i 
-            model_amplitude.setVal(i)
-            #j = 0
-            #while 1:
+
+        orig = 1e15 
+        min_point = 0
+        j = 0
+        for test_val in numpy.arange(min_value, max_range + 1., (max_range - min_value)/number_of_points):
+            print "Performing: ", test_val 
+            model_amplitude.setVal(test_val)
             minuit.migrad()
-            res = minuit.save(str(i)) 
-            #expo_coef.setConstant(False) 
-            #if j == 1: break
-            #if math.fabs(res.correlation('exp_coef_', 'expo_const_one')) > 0.98:
-            #    expo_coef.setConstant(True) 
-            #    print "Set constant."
-            #else: break
-            #j += 1
+            res = minuit.save(str(test_val)) 
+            min_val = res.minNll()
                 
             if debug:
                 self.print_plot(model, data, str(i))
-            var_cache = ROOT.ostringstream()
-            model.getVariables().writeToStream(var_cache, False)
-            output_list.append((i, res))
-            if res.minNll() < orig:  orig = res.minNll()
+            output_list.append((test_val, res))
+            if min_val < orig:  
+                orig = min_val 
+                min_point = j
             output_dict[str(i)] = res 
-            output_dict[str(i) + 'vars'] = ROOT.TObjString(var_cache.str())
+            output_list[j] = [test_val, min_val]
+            j += 1
+            #var_cache = ROOT.ostringstream()
+            #model.getVariables().writeToStream(var_cache, False)
+            #output_dict[str(i) + 'vars'] = ROOT.TObjString(var_cache.str())
             
         [pll_curve.addPoint(i, res.minNll() - orig) for i, res in output_list]
         output_dict['first_fit'] = first_res
         output_dict['pll_curve'] = pll_curve
         first_res.Print('v')
+
+        output_list -= [0, min_nll]
        
+        # Now find the confidence_level using unbounded and bounded PLL
+        
+        # Grab the best fit value (at the min_point)
+        best_fit = output_list[min_point][0]
+        bounded_min_nll = 0
+        unbounded_list = output_list
+        bounded_list = unbounded_list.copy() 
+        if best_fit < 0:
+            # Means the best fit was less than 0, in which case, we need to 
+            # bound the lower limit, taking the point where the model_amplitude
+            # is greater than 0
+            bounded_list = output_list[numpy.where(bounded_list[:,0] >= 0)]
+            model_amplitude.setVal(0)
+            minuit.migrad()
+            res = minuit.save()
+            bounded_min_nll = res.minNll()
+        # Now this list is shifted correctly
+        bounded_list -= [0, bounded_min_nll]
+        
+
+        # Generate *helper* curves, these allow us to extrapolate
+        # between points assuming that the likelihood is reasonably 
+        # smooth
+        unbounded_curve = ROOT.RooCurve()
+        [unbounded_curve.addPoint(x,y) for x, y in unbounded_list]
+        bounded_curve = ROOT.RooCurve()
+        [bounded_curve.addPoint(x,y) for x, y in bounded_list]
+
+        # Now find where each rises to the particular confidence level value
+        step_size = 0.01
+        
+        # finding unbounded, upper limit
+        unbounded_start = best_fit 
+        while (unbounded_curve.Eval(unbounded_start) < conf_level and 
+               unbounded_start <= model_amplitude.getMax()): unbounded_start += step_size
+        unbounded_upper_limit = unbounded_start 
+
+        # finding unbounded, lower limit
+        unbounded_start =  best_fit
+        while (unbounded_curve.Eval(unbounded_start) < conf_level and 
+               unbounded_start >= 0): unbounded_start -= step_size
+        unbounded_lower_limit = unbounded_start 
+
+       
+        # We only calculate the bounded upper limit if the best fit is below 0,
+        # otherwise it's exactly the same as the unbounded limit
+        bounded_limit = unbounded_upper_limit
+        if best_fit < 0:
+            bounded_start = bounded_curve.Eval(0) 
+            while (bounded_curve.Eval(bounded_start) < conf_level and 
+                   bounded_start <= model_amplitude.getMax()): bounded_start += step_size
+            bounded_limit = bounded_start 
+        
+        # Save these bounds in the output dictionary
+        output_dict['unbounded_lower_limit'] = unbounded_lower_limit*mult_factor
+        output_dict['unbounded_upper_limit'] = unbounded_upper_limit*mult_factor
+        output_dict['bounded_limit'] = bounded_limit*mult_factor
+        
+
+        # Ok now generate the fits at the bounded points to more easily access them
+        # First at the unbounded upper limit 
+        model_amplitude.setVal(unbounded_upper_limit)
+        minuit.migrad()
+        res = minuit.save("unbounded_upper_limit") 
+        output_dict['unbounded_upper_limit_fit_results'] = res
+
+        # Then at the bounded upper limit 
+        model_amplitude.setVal(bounded_limit)
+        minuit.migrad()
+        res = minuit.save("bounded_limit") 
+        output_dict['bounded_limit_fit_results'] = res
+        
+        # Return the results
         return output_dict
  
     def scan_confidence_value_space_for_model(self, 
