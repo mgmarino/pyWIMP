@@ -117,7 +117,9 @@ class DataCalculation(ExclusionCalculation.ExclusionCalculation):
         orig = 1e15 
         min_point = 0
         j = 0
-        for test_val in numpy.arange(min_value, max_range + 1., (max_range - min_value)/number_of_points):
+        step_size = (max_range - min_value)/number_of_points
+        for test_val in numpy.arange(min_value, 
+                        max_range + step_size*0.5, step_size):
             print "Performing: ", test_val 
             model_amplitude.setVal(test_val)
             minuit.migrad()
