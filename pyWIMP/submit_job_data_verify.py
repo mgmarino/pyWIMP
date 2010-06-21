@@ -5,13 +5,13 @@ import glob
 import numpy
 
 # First the vitals of the job
-queue = ["default", "scavenge"]
+queue = ["scavenge", "scavenge", "scavenge"]
 sens_home = "/share/home/mgmarino/sensitivity/SensitivityCalculation"
-output_dir = "/share/home/mgmarino/DataVerify3"
+output_dir = "/share/home/mgmarino/FinalDataVerify6"
 path_of_results = output_dir 
 cores = 8
 nodes = 2
-hours, minutes, seconds = ("7", "00", "00")
+hours, minutes, seconds = ("5", "00", "00")
 
 base_dir = "/share/home/mgmarino/FitBegeData/output_data_sets"
 all_root_files = glob.glob("%s/output_for_data_verification/results_rt_99/*.root" % base_dir)
@@ -25,10 +25,14 @@ max_time -= 60 # allow for some extra padding in the wall clock
 #wimp_list = [100, 80, 60, 40]
 job = 0
 
+#run_again = [24]
 if not os.path.isdir(output_dir):
     os.makedirs(output_dir)
 
 for afile in all_root_files:
+    #if job not in run_again:
+    #    job += 1
+    #    continue
     execution_string=""
     execution_string+="""
 trap : SIGINT

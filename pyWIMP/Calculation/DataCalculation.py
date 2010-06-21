@@ -142,19 +142,19 @@ class DataCalculation(ExclusionCalculation.ExclusionCalculation):
              for i in range(len(output_list))]
         output_dict['pll_curve'] = pll_curve
 
-        output_list -= [0, min_nll]
        
         # Now find the confidence_level using unbounded and bounded PLL
         
         # Grab the best fit value (at the min_point)
         best_fit = output_list[min_point][0]
-        bounded_min_nll = 0
-        unbounded_list = output_list
-        bounded_list = unbounded_list.copy() 
+        bounded_min_nll = min_nll
+        unbounded_list = output_list.copy()
+        unbounded_list -= [0, min_nll]
+        bounded_list = output_list.copy() 
         if best_fit < 0:
             # Means the best fit was less than 0, in which case, we need to 
             # bound the lower limit, taking the point where the model_amplitude
-            # is greater than 0
+            # is equal to 0 
             bounded_list = output_list[numpy.where(bounded_list[:,0] >= 0)]
             model_amplitude.setVal(0)
             minuit.migrad()
@@ -223,6 +223,10 @@ class DataCalculation(ExclusionCalculation.ExclusionCalculation):
         res = minuit.save("best_fit") 
         output_dict['best_fit_fit_results'] = res
         
+        # Reset the model to be the state of the limit, which is expected by the
+        # calling function 
+        model_amplitude.setVal(bounded_limit)
+        minuit.migrad()
         # Return the results
         return output_dict
  
@@ -340,6 +344,10 @@ class DataCalculation(ExclusionCalculation.ExclusionCalculation):
                 model.plotOn(aframe, 
                      ROOT.RooFit.Components("WIMPPDF_With_Time_And_Escape_Vel"), 
                      ROOT.RooFit.LineStyle(ROOT.RooFit.kDashed))
+                model.plotOn(aframe, 
+                     ROOT.RooFit.Components("(Gauss_Signal*"), 
+                     ROOT.RooFit.LineStyle(ROOT.RooFit.kDashed))
+
                 model.plotOn(aframe, 
                      ROOT.RooFit.Components("energy_pdf_*"), 
                      ROOT.RooFit.LineWidth(4),

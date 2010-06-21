@@ -7,6 +7,7 @@ import ExclusionCalculation as ec
 import OscillationSensitivityCalculation as osc
 import DataCalculation as dat
 from  ..utilities.utilities import unroll_RooAbsPdf
+from pyWIMP.DMModels.gaussian_signal import GaussianSignalModel 
 
 class WIMPModel:
     """
@@ -214,8 +215,11 @@ class DataExclusion(WIMPModel):
         del adict['constant_energy']
         del adict['constant_time']
         del adict['background_rate']
+        adict['fix_l_line_ratio'] = ('Fix ratio of the Ge and Zn L-lines', False)
+        adict['do_axioelectric'] = ('Do axioelectric fitting', False)
         adict['data_file'] = ('Name of data root file', 'temp.root')
         adict['number_of_bins'] = ('Number of bins to use.  0 means un-binned.  [default 0]', 0)
+        adict['axion_mass'] = ('Axion mass in keV [default 0]', 0.)
         adict['object_name'] = ("""Name of object inside data file. 
 This can be a:                                             
                                                                 
@@ -339,34 +343,54 @@ a subset of the TTree and pass into RooDataSet.
         if self.data_set_model.isWeighted(): print "Data set is weighted"
         print "Data set has %i entries." % self.data_set_model.sumEntries()
 
-        self.wimpClass = WIMPModel(self.basevars,
-            mass_of_wimp=self.wimp_mass,
-            kilograms = self.mass_of_detector,
-            constant_quenching=(not self.variable_quenching))
-
-        # This is where we define our model
-        self.model = self.wimpClass.get_model()
-        #self.model = self.wimpClass.get_simple_model()
-        self.norm = self.wimpClass.get_normalization().getVal()
-        self.is_initialized = True
 
         # The following has not been normalized to per-nucleon yet.
-        self.model_normal = ROOT.RooRealVar("model_normal", 
-                                            "WIMP-nucleus #sigma", 
-                                            1, -10, 100, 
-                                            "pb")
-        self.model_extend = ROOT.RooExtendPdf("model_extend", 
-                                               "model_extend", 
-                                               self.model, 
-                                               self.model_normal)
-        # Getting the number of events for a model_normal of 1 
-        # This gives us number of events per model_normal value
-        scaler = self.model_extend.expectedEvents(self.variables)
-        self.model_normal.setMax(2*self.data_set_model.sumEntries()/scaler)
+        if not self.do_axioelectric:
+            self.wimpClass = WIMPModel(self.basevars,
+                mass_of_wimp=self.wimp_mass,
+                kilograms = self.mass_of_detector,
+                constant_quenching=(not self.variable_quenching))
+ 
+            # This is where we define our model
+            self.model = self.wimpClass.get_model()
+            #self.model = self.wimpClass.get_simple_model()
+            self.norm = self.wimpClass.get_normalization().getVal()
+
+            self.model_normal = ROOT.RooRealVar("model_normal", 
+                                                "WIMP-nucleus #sigma", 
+                                                1, -10, 100, 
+                                                "pb")
+            self.model_extend = ROOT.RooExtendPdf("model_extend", 
+                                                   "model_extend", 
+                                                   self.model, 
+                                                   self.model_normal)
+            # Getting the number of events for a model_normal of 1 
+            # This gives us number of events per model_normal value
+            scaler = self.model_extend.expectedEvents(self.variables)
+            self.model_normal.setMax(2*self.data_set_model.sumEntries()/scaler)
+        else:
+            # wimpClass is of course a misnomer here, but we use it for now
+            self.wimpClass = GaussianSignalModel(self.basevars,
+                                                 mean_of_signal=self.axion_mass)
+ 
+            self.model_normal = ROOT.RooRealVar("model_normal", 
+                                                "Counts", 
+                                                0, -10, 1000)
+            # This is where we define our model
+            self.model = self.wimpClass.get_model()
+            #self.model = self.wimpClass.get_simple_model()
+            self.norm = 1 
+            self.model_extend = ROOT.RooExtendPdf("model_extend", 
+                                                   "model_extend", 
+                                                   self.model, 
+                                                   self.model_normal)
+
+        self.is_initialized = True
 
         self.calculation_class = \
             dat.DataCalculation(self.exit_manager)
-        self.low_energy = LowEnergyBackgroundModel(self.basevars, use_ratio=False)
+        self.low_energy = LowEnergyBackgroundModel(self.basevars, 
+                                                   use_ratio=self.fix_l_line_ratio)
 
         list_of_models, list_of_coefficients = self.low_energy.get_list_components()
         self.extended_models = []

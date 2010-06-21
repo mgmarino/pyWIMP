@@ -51,7 +51,7 @@ Int_t MGMErfcFunction::getAnalyticalIntegral(RooArgSet& allVars, RooArgSet& anal
 Double_t MGMErfcFunction::integralEvaluateAt(Double_t value) const
 {
    Double_t func = 0.5*(value - exp(-0.5*pow((value - fMean)/fSigma, 2.))*sqrt(2/TMath::Pi())*fSigma 
-                   + (value - fMean)*erfc((value - fMean)/(sqrt(2)*fSigma)));
+                   + (fMean-value)*erf((value - fMean)/(sqrt(2)*fSigma)));
    return func;
 }
 
