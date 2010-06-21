@@ -20,9 +20,9 @@ class FlatWithExponentialModel(BaseModel):
 
         self.energy_constant = ROOT.RooRealVar("energy_const_%s" % tag,
                                                "energy_const_%s" % tag,
-                                               0, 1000)
-        self.energy_constant_two = ROOT.RooRealVar("energy_const_%s" % tag,
-                                               "energy_const_%s" % tag,
+                                               0, 10000)
+        self.energy_constant_two = ROOT.RooRealVar("energy_const_two_%s" % tag,
+                                               "energy_const_two_%s" % tag,
                                                0, 1000)
         # Flat pdf
         self.time_pdf = ROOT.RooPolynomial("time_pdf_exp_%s" % tag, 
