@@ -214,6 +214,7 @@ class DataExclusion(WIMPModel):
         del adict['constant_energy']
         del adict['constant_time']
         del adict['background_rate']
+        adict['fix_l_line_ratio'] = ('Fix ratio of the Ge and Zn L-lines', False)
         adict['data_file'] = ('Name of data root file', 'temp.root')
         adict['number_of_bins'] = ('Number of bins to use.  0 means un-binned.  [default 0]', 0)
         adict['object_name'] = ("""Name of object inside data file. 
@@ -366,7 +367,8 @@ a subset of the TTree and pass into RooDataSet.
 
         self.calculation_class = \
             dat.DataCalculation(self.exit_manager)
-        self.low_energy = LowEnergyBackgroundModel(self.basevars, use_ratio=False)
+        self.low_energy = LowEnergyBackgroundModel(self.basevars, 
+                                                   use_ratio=self.fix_l_line_ratio)
 
         list_of_models, list_of_coefficients = self.low_energy.get_list_components()
         self.extended_models = []
