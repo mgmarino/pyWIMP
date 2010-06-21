@@ -15,12 +15,19 @@ class GaussianSignalModel(BaseModel):
         # Normally, we don't want to do this, but this keeps 
         # it from importing this module until the last moment.
         BaseModel.__init__(self, basevars)
+        sig = get_sigma(mean_of_signal*1e3)*1e-3
         self.class_model = GammaLineFactory.generate(mean_of_signal, 0, 
-                                                     get_sigma(mean_of_signal*1e3)*1e-3, 0, 
+                                                     sig, 0, 
                                                      0, basevars)
         self.get_model().SetName("Gauss_Signal_%g" % mean_of_signal)
         self.get_model().SetTitle("Gauss_Signal_%g" % mean_of_signal)
+
+        self.normalization = 1./(math.sqrt(ROOT.TMath.TwoPi())*sig)
         
     
     def get_model(self):     
         return self.class_model.get_model()
+
+    def get_normalization(self):     
+        # Prints normalization because roofit doesn't return correct norm
+        return self.normalization
