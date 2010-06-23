@@ -92,7 +92,7 @@ will be displayed during the program.
 
         self.model_normal = ROOT.RooRealVar("model_normal", 
                                             "WIMP event number", 
-                                            0, -1, 1000)
+                                            0, -0.01, 0.1)
         self.wimpClass = WIMPModel(self.basevars,
             mass_of_wimp=self.wimp_mass,
             kilograms = self.mass_of_detector,
@@ -112,7 +112,7 @@ will be displayed during the program.
         self.background_normal = ROOT.RooRealVar("flat_normal", 
                                                  "Background event number", 
                                                  self.total_counts, 
-                                                 -1,
+                                                 1e-15,
                                                  3*self.total_counts)
         self.background_extend = ROOT.RooExtendPdf("background_extend", 
                                                    "background_extend", 
@@ -153,7 +153,7 @@ will be displayed during the program.
 
         if not self.debug:
             ROOT.RooMsgService.instance().setSilentMode(True)
-            ROOT.RooMsgService.instance().setGlobalKillBelow(3)
+            ROOT.RooMsgService.instance().setGlobalKillBelow(4)
 
         # Open the pipe to write back on
         write_pipe = os.fdopen(self.output_pipe, 'w') 

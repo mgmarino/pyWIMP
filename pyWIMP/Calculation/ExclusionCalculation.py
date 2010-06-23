@@ -42,10 +42,11 @@ class ExclusionCalculation(BaseCalculation.BaseCalculation):
 
         min_value = model_amplitude.getVal() - distance_from_min 
         if min_value > 0: min_value = 0
-        if min_value < model_amplitude.getMin(): min_val = model_amplitude.getMin()
+        if min_value < model_amplitude.getMin(): min_value = model_amplitude.getMin()
         
         max_range = model_amplitude.getVal() + 50
         if max_range < 10: max_range = 50
+        if max_range > model_amplitude.getMax(): max_range = model_amplitude.getMax()
 
 
         # Ensure that we are going 
@@ -54,13 +55,15 @@ class ExclusionCalculation(BaseCalculation.BaseCalculation):
         model_amplitude.setVal(max_range)
         minuit.migrad()
         while nll.getVal()-min_nll < 2*conf_level: 
-            max_range += 100
+            max_range *= 2
             model_amplitude.setVal(max_range)
             if model_amplitude.getVal() == model_amplitude.getMax():
                 self.logging("Resetting maximum:", model_amplitude.getMax() )
                 model_amplitude.setMax(model_amplitude.getVal()*2)
             minuit.migrad()
+            if max_range > 1e16: break
 
+        #self.logging("Min, Max: ", min_value, max_range)
         model_amplitude.setVal(0)
         model_amplitude.setConstant(False)
         minuit.migrad()
@@ -76,8 +79,10 @@ class ExclusionCalculation(BaseCalculation.BaseCalculation):
         orig = 1e15 
         min_point = 0
         j = 0
-        step_size = (max_range - min_value)/(number_of_points-1)
+        step_size = float(max_range - min_value)/(number_of_points-1)
         test_points = numpy.arange(min_value, max_range + step_size*0.5, step_size)
+        pll_curve = ROOT.RooCurve()
+        pll_curve.SetName("pll_frac_plot") 
         for test_val in test_points: 
             #print "Performing: ", test_val 
             model_amplitude.setVal(test_val)
@@ -86,7 +91,7 @@ class ExclusionCalculation(BaseCalculation.BaseCalculation):
             min_val = res.minNll()
             res.IsA().Destructor(res)
                 
-            if debug:
+            if self.print_out_plots:
                 self.print_plot(model, data, str(test_val))
             if min_val < orig:  
                 orig = min_val 
@@ -97,6 +102,10 @@ class ExclusionCalculation(BaseCalculation.BaseCalculation):
             if self.is_exit_requested(): return None
             
        
+        if debug:
+            [pll_curve.addPoint(output_list[i][0], output_list[i][1] - orig) 
+                 for i in range(len(output_list))]
+            output_dict['pll_curve'] = pll_curve
         # Now find the confidence_level using unbounded and bounded PLL
         
         # Grab the best fit value (at the min_point)
