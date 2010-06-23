@@ -345,7 +345,7 @@ class DataCalculation(ExclusionCalculation.ExclusionCalculation):
                      ROOT.RooFit.Components("WIMPPDF_With_Time_And_Escape_Vel"), 
                      ROOT.RooFit.LineStyle(ROOT.RooFit.kDashed))
                 model.plotOn(aframe, 
-                     ROOT.RooFit.Components("(Gauss_Signal*"), 
+                     ROOT.RooFit.Components("*Gauss_Signal*"), 
                      ROOT.RooFit.LineStyle(ROOT.RooFit.kDashed))
 
                 model.plotOn(aframe, 

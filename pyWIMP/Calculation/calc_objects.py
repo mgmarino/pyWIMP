@@ -378,8 +378,12 @@ a subset of the TTree and pass into RooDataSet.
                                                 0, -10, 1000)
             # This is where we define our model
             self.model = self.wimpClass.get_model()
-            #self.model = self.wimpClass.get_simple_model()
-            self.norm = 1 
+            self.norm = self.wimpClass.get_normalization()*self.model.getNorm(
+                        ROOT.RooArgSet(self.basevars.get_energy())) 
+
+            # We actually want the inverse of the normaliation, since this is later multiplied 
+            # and we want the total counts in a particular gaussian.
+            self.norm = 1./self.norm
             self.model_extend = ROOT.RooExtendPdf("model_extend", 
                                                    "model_extend", 
                                                    self.model, 
