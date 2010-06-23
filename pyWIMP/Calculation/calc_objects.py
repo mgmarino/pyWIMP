@@ -76,11 +76,10 @@ will be displayed during the program.
                                 self.background_rate*
                                 (self.energy_max-self.threshold)*
                                 self.total_time*365)
-        if not self.basevars:
-            self.basevars = BaseVariables(time_beginning=0,
-                time_in_years=self.total_time,
-                energy_threshold=self.threshold,
-                energy_max=self.energy_max)
+        self.basevars = BaseVariables(time_beginning=0,
+            time_in_years=self.total_time,
+            energy_threshold=self.threshold,
+            energy_max=self.energy_max)
 
         self.variables = ROOT.RooArgSet()
         if self.constant_time:
@@ -93,7 +92,7 @@ will be displayed during the program.
 
         self.model_normal = ROOT.RooRealVar("model_normal", 
                                             "WIMP event number", 
-                                            1, -10, 1000)
+                                            0, -1, 1000)
         self.wimpClass = WIMPModel(self.basevars,
             mass_of_wimp=self.wimp_mass,
             kilograms = self.mass_of_detector,
@@ -113,7 +112,7 @@ will be displayed during the program.
         self.background_normal = ROOT.RooRealVar("flat_normal", 
                                                  "Background event number", 
                                                  self.total_counts, 
-                                                 -10,
+                                                 -1,
                                                  3*self.total_counts)
         self.background_extend = ROOT.RooExtendPdf("background_extend", 
                                                    "background_extend", 

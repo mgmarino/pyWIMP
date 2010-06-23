@@ -66,7 +66,10 @@ class BaseCalculation:
         list_of_values = []
         i = 0
         confidence_value = ROOT.TMath.ChisquareQuantile(cl, 1) 
+        #ROOT.RooTrace.active(True)
         while i < number_iterations:
+            #ROOT.RooTrace.dump(ROOT.cout, True)
+            #ROOT.RooTrace.mark()
             if self.debug:
                 print "Process %s: Iteration (%i) of (%i)" \
                     % (os.getpid(), i+1, number_iterations)
@@ -90,7 +93,8 @@ class BaseCalculation:
                 confidence_value/2,
                 mult_factor,
                 print_level,
-                verbose) 
+                verbose,
+                self.show_plots) 
     
             if not get_val: 
                 # There was an error somewhere downstream
