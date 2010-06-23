@@ -36,6 +36,41 @@ class BaseCalculation:
         sys.stdout.write('\n')
         sys.stdout.flush()
 
+    def print_plot(self, model, data, title = "", scaling = 1.):
+        var_iter = model.getObservables(data).createIterator()
+        while 1:
+            var_obj = var_iter.Next()
+            if not var_obj: break
+            aframe = var_obj.frame().emptyClone('temp')
+            ROOT.RooAbsData.plotOn(data, aframe)
+            model.plotOn(aframe)
+            model.plotOn(aframe, 
+                 ROOT.RooFit.Components("WIMPPDF_With_Time_And_Escape_Vel"), 
+                 ROOT.RooFit.LineStyle(ROOT.RooFit.kDashed))
+            model.plotOn(aframe, 
+                 ROOT.RooFit.Components("energy_pdf_*"), 
+                 ROOT.RooFit.LineWidth(4),
+                 ROOT.RooFit.LineStyle(ROOT.RooFit.kDotted),
+                 ROOT.RooFit.LineColor(ROOT.RooFit.kRed))
+            model.plotOn(aframe, 
+                 ROOT.RooFit.Components("gamma*"), 
+                 ROOT.RooFit.LineWidth(4),
+                 ROOT.RooFit.LineColor(ROOT.RooFit.kRed))
+            aframe.SetTitle("%s %s" % 
+                            (self.plot_base_name, title))
+            #bin_width = aframe.getFitRangeBinW()
+            #axis = rescale_frame(self.c1, aframe, scaling/bin_width, axis_title)
+            #axis.CenterTitle()
+            aframe.Draw()
+            self.c1.Update()
+            if self.print_out_plots:
+                title = aframe.GetTitle()
+                title = title.replace(' ','').replace('(','').replace(')','').replace(',','') 
+                self.c1.Print(title + ("%s.eps" % var_obj.GetName()))
+            else:
+                raw_input("Hit Enter to continue")
+
+
     def find_confidence_value_for_model(self, 
                                         model, 
                                         data, 
@@ -77,6 +112,7 @@ class BaseCalculation:
             # because the number_of_events is just
             # an expected number.
             model_amplitude.setVal(0)
+            print "Number of events: ", number_of_events
             data_set_func = data_model.generate(
                 variables,
                 number_of_events, 
