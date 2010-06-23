@@ -96,7 +96,7 @@ class BaseCalculation:
                 verbose,
                 self.show_plots) 
     
-            if not get_val: 
+            if not get_val or self.is_exit_requested(): 
                 # There was an error somewhere downstream
                 # or an interrupt was signalled
                 # Get out

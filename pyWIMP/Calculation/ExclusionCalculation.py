@@ -93,6 +93,8 @@ class ExclusionCalculation(BaseCalculation.BaseCalculation):
                 min_point = j
             output_list[j] = [test_val, min_val]
             j += 1
+            # This is the most dense loop, so checking if we should get out
+            if self.is_exit_requested(): return None
             
        
         # Now find the confidence_level using unbounded and bounded PLL
