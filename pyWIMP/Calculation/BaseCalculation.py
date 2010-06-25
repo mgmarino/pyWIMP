@@ -105,9 +105,8 @@ class BaseCalculation:
         while i < number_iterations:
             #ROOT.RooTrace.dump(ROOT.cout, True)
             #ROOT.RooTrace.mark()
-            if self.debug:
-                print "Process %s: Iteration (%i) of (%i)" \
-                    % (os.getpid(), i+1, number_iterations)
+            self.logging("Process %s: Iteration (%i) of (%i)" 
+                    % (os.getpid(), i+1, number_iterations))
             # Generate the data, use Extended flag
             # because the number_of_events is just
             # an expected number.

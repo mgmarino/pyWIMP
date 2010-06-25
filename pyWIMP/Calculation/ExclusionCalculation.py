@@ -1,6 +1,7 @@
 import BaseCalculation
 import ROOT
 import numpy
+import math
 
 class ExclusionCalculation(BaseCalculation.BaseCalculation):
     """
@@ -20,6 +21,7 @@ class ExclusionCalculation(BaseCalculation.BaseCalculation):
                                         debug = False,
                                         tolerance = 0.001):
     
+        tolerance = math.fabs(tolerance)
         number_of_points = 100
         distance_from_min = 20.
         #pars = model.getParameters(data)
@@ -54,8 +56,24 @@ class ExclusionCalculation(BaseCalculation.BaseCalculation):
         model_amplitude.setConstant(True)
         model_amplitude.setVal(max_range)
         minuit.migrad()
+        # Make sure we don't overshoot
+        #self.logging("Checking for overshoot")
+        times_through = 0 
+        test_range = 10*conf_level
+        while nll.getVal()-min_nll > test_range: 
+            max_range /= 2.
+            model_amplitude.setVal(max_range)
+            self.logging("overshoot: ", max_range, nll.getVal()-min_nll)
+            minuit.migrad()
+            times_through += 1
+            if times_through > 10:
+                times_through = 0
+                test_range *= 2
+
+        # Make sure we don't undershoot
+        #self.logging("Checking for undershoot")
         while nll.getVal()-min_nll < 2*conf_level: 
-            max_range *= 2
+            max_range *= 2.
             model_amplitude.setVal(max_range)
             if model_amplitude.getVal() == model_amplitude.getMax():
                 self.logging("Resetting maximum:", model_amplitude.getMax() )
@@ -63,7 +81,7 @@ class ExclusionCalculation(BaseCalculation.BaseCalculation):
             minuit.migrad()
             if max_range > 1e16: break
 
-        #self.logging("Min, Max: ", min_value, max_range)
+        self.logging("Min, Max: ", min_value, max_range)
         model_amplitude.setVal(0)
         model_amplitude.setConstant(False)
         minuit.migrad()
@@ -84,7 +102,8 @@ class ExclusionCalculation(BaseCalculation.BaseCalculation):
         pll_curve = ROOT.RooCurve()
         pll_curve.SetName("pll_frac_plot") 
         for test_val in test_points: 
-            #print "Performing: ", test_val 
+            if self.debug:
+                print "Performing: ", test_val 
             model_amplitude.setVal(test_val)
             minuit.migrad()
             res = minuit.save(str(test_val)) 
@@ -102,7 +121,7 @@ class ExclusionCalculation(BaseCalculation.BaseCalculation):
             if self.is_exit_requested(): return None
             
        
-        if debug:
+        if self.debug:
             [pll_curve.addPoint(output_list[i][0], output_list[i][1] - orig) 
                  for i in range(len(output_list))]
             output_dict['pll_curve'] = pll_curve
@@ -137,34 +156,56 @@ class ExclusionCalculation(BaseCalculation.BaseCalculation):
         [bounded_curve.addPoint(x,y) for x, y in bounded_list]
 
         # Now find where each rises to the particular confidence level value
+        # We actually have to be dynamic about the stepsize since we could
         step_size = 0.01
         
         # finding unbounded, upper limit
+        self.logging("Finding unbound upper")
         unbounded_start = best_fit 
-        while (unbounded_curve.Eval(unbounded_start) < conf_level and 
-               unbounded_start <= model_amplitude.getMax()): unbounded_start += step_size
+        while (unbounded_start <= model_amplitude.getMax()): 
+            # If we overshoot, check it.
+            while (unbounded_curve.Eval(unbounded_start + step_size) >= conf_level and
+                   unbounded_curve.Eval(unbounded_start + step_size) - conf_level > tolerance): 
+                   step_size /= 2.
+            unbounded_start += step_size
+            if math.fabs(unbounded_curve.Eval(unbounded_start) - conf_level) < tolerance: break 
+
         unbounded_upper_limit = unbounded_start 
 
+        step_size = 0.01
         # finding unbounded, lower limit
         unbounded_start =  best_fit
-        while (unbounded_curve.Eval(unbounded_start) < conf_level and 
-               unbounded_start >= 0): unbounded_start -= step_size
+        #self.logging("Finding unbound lower")
+        while (unbounded_start >= 0): 
+            while (unbounded_curve.Eval(unbounded_start - step_size) >= conf_level and
+                   unbounded_curve.Eval(unbounded_start - step_size) - conf_level > tolerance): 
+                   step_size /= 2.
+            unbounded_start -= step_size
+            if math.fabs(unbounded_curve.Eval(unbounded_start) - conf_level) < tolerance: break 
         unbounded_lower_limit = unbounded_start 
 
        
         # We only calculate the bounded upper limit if the best fit is below 0,
         # otherwise it's exactly the same as the unbounded limit
+        step_size = 0.01
         bounded_limit = unbounded_upper_limit
+        #self.logging("Finding bound upper")
         if best_fit < 0:
             bounded_start = bounded_curve.Eval(0) 
-            while (bounded_curve.Eval(bounded_start) < conf_level and 
-                   bounded_start <= model_amplitude.getMax()): bounded_start += step_size
-            bounded_limit = bounded_start 
-        
+            while (bounded_start <= model_amplitude.getMax()): 
+                # If we overshoot, check it.
+                while (bounded_curve.Eval(bounded_start + step_size) >= conf_level and
+                       bounded_curve.Eval(bounded_start + step_size) - conf_level > tolerance): 
+                       step_size /= 2.
+                bounded_start += step_size
+                if math.fabs(bounded_curve.Eval(bounded_start) - conf_level) < tolerance: break 
+
+        #self.logging("Exiting")
         # Save these bounds in the output dictionary
         output_dict['unbounded_lower_limit'] = unbounded_lower_limit*mult_factor
         output_dict['unbounded_upper_limit'] = unbounded_upper_limit*mult_factor
         output_dict['bounded_limit'] = bounded_limit*mult_factor
+        output_dict['mult_factor'] = mult_factor
         
 
         # Return the results
