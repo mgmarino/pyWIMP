@@ -24,7 +24,7 @@ class FittingModel(BaseModel):
                      ("Zn", 8.979, 0.1, 0.1, 0.04, 0), 
                      ("As", 11.103, 0.1, 0.1, 0.04, 0), 
                      ("Ge-Low", 1.299, 0.0, 0.1, 0.0, 0), 
-                     ("ZN-Low", 1.10, 0.0, 0.1, 0.0, 0) ]
+                     ("ZN-Low", 1.10, 0.0, 0.0, 0.0, 0) ]
                      #("Unknown", 0.9, 0.05, 0.1, 0.04, 0), 
         
         self.gamma_list = []
@@ -34,7 +34,8 @@ class FittingModel(BaseModel):
         for name,mean,mean_error,sigma, sigma_error, atime in mean_list:
             if mean > max or mean < min: continue
             print mean
-            agamma = gamma_line_model.GammaLineFactory.generate(mean, mean_error, get_sigma(mean*1e3)*1e-3, 
+            agamma = gamma_line_model.GammaLineFactory.generate(mean, 
+                mean_error, get_sigma(mean*1e3)*1e-3, 
                 sigma_error, atime, basevars,name)
             self.gamma_list.append((agamma, agamma.get_model()))
           
@@ -53,7 +54,7 @@ class FittingModel(BaseModel):
         self.exp_constant_one = ROOT.RooRealVar("expo_const_one%s" % tag,
                                             "expo_const_one%s" % tag,
                                             #1./3, 0, 500)
-                                            -3., -100, -0.5)
+                                            -3., -10, -0.8)
         #self.exp_constant_one.removeMax()
         self.exp_constant_one.setError(0.5)
         self.exp_constant_time = ROOT.RooRealVar("expo_const_time_%s" % tag,
@@ -79,8 +80,10 @@ class FittingModel(BaseModel):
                                            self.exp_constant_one)
         self.pdf_list.add(self.energy_pdf_flat)
         self.coefficienct_list.add(self.flat_coef)
-        self.pdf_list.add(self.energy_exp_pdf)
-        self.coefficienct_list.add(self.exp_coef)
+
+        if basevars.get_energy().getMin() < 1.5:
+            self.pdf_list.add(self.energy_exp_pdf)
+            self.coefficienct_list.add(self.exp_coef)
 
 
 

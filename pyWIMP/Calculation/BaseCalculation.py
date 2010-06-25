@@ -102,6 +102,10 @@ class BaseCalculation:
         i = 0
         confidence_value = ROOT.TMath.ChisquareQuantile(cl, 1) 
         #ROOT.RooTrace.active(True)
+
+        # Save the values of the variables to reset after fitting
+        var_cache = ROOT.ostringstream()
+        data_model.getVariables().writeToStream(var_cache, False)
         while i < number_iterations:
             #ROOT.RooTrace.dump(ROOT.cout, True)
             #ROOT.RooTrace.mark()
@@ -111,11 +115,10 @@ class BaseCalculation:
             # because the number_of_events is just
             # an expected number.
             model_amplitude.setVal(0)
-            print "Number of events: ", number_of_events
-            data_set_func = data_model.generate(
-                variables,
-                number_of_events, 
-                ROOT.RooFit.Extended(True))
+
+            # Reset the variables to the initial values in the cache
+            data_model.getVariables().readFromStream(ROOT.istringstream(var_cache.str()), False)
+            data_set_func = data_model.generate(variables)
     
             if not data_set_func:
                 print "Background entries are much too low, need to estimate with FC or Rolke."

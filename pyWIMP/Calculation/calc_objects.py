@@ -25,6 +25,8 @@ class WIMPModel:
                 'energy_max' : ('Maximum energy (keV)', 50),
                 'mass_of_detector' : ('Mass of detector (kg)', 1),
                 'background_rate' : ('Background rate (counts/keV/kg/day)', 0.1),
+                'tritium_activation_rate' : ('Tritium activation rate (counts/kg/day)', 200),
+                'tritium_exposure_time' : ('Tritium exposure time days', 0),
                 'wimp_mass' : ('WIMP mass (GeV/c^-2)', 10),
                 'confidence_level' : ('Confidence level (0 -> 1)', 0.9),
                 'variable_quenching' : ('Set to use variable quenching', False),
@@ -92,24 +94,21 @@ will be displayed during the program.
         if not self.constant_energy:
             self.variables.add(self.basevars.get_energy())
 
-        self.flatClass = FlatModel(self.basevars)
 
         self.calculation_class = \
             ec.ExclusionCalculation(self.exit_manager)
  
         # This is where we define our models
-        self.background_model =  self.flatClass.get_model()
+        self.backgroundClass = TritiumDecayModel(self.basevars, 
+                                                 self.tritium_exposure_time, 
+                                                 self.tritium_activation_rate,
+                                                 self.mass_of_detector,
+                                                 self.background_rate)
 
+        # This model is already an extended model
+        self.background_model =  self.backgroundClass.get_model()
 
-        self.background_normal = ROOT.RooRealVar("flat_normal", 
-                                                 "Background event number", 
-                                                 self.total_counts, 
-                                                 1e-15,
-                                                 3*self.total_counts)
-        self.background_extend = ROOT.RooExtendPdf("background_extend", 
-                                                   "background_extend", 
-                                                   self.background_model, 
-                                                   self.background_normal)
+        self.background_extend = self.background_model
         if not self.do_axioelectric:
             # The following has not been normalized to per-nucleon yet.
             self.model_normal = ROOT.RooRealVar("model_normal", 
@@ -155,7 +154,7 @@ will be displayed during the program.
                                         self.model_extend))
  
         self.test_variable = self.model_normal
-        self.data_set_model = self.background_model
+        self.data_set_model = self.background_extend
         self.fitting_model = self.added_pdf
         self.is_initialized = True
     
