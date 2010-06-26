@@ -90,7 +90,7 @@ class BaseCalculation:
                                               model_amplitude, 
                                               mult_factor,
                                               variables, 
-                                              number_of_events,
+                                              do_bin_data,
                                               number_iterations, 
                                               cl):
     
@@ -111,14 +111,17 @@ class BaseCalculation:
             #ROOT.RooTrace.mark()
             self.logging("Process %s: Iteration (%i) of (%i)" 
                     % (os.getpid(), i+1, number_iterations))
-            # Generate the data, use Extended flag
-            # because the number_of_events is just
-            # an expected number.
             model_amplitude.setVal(0)
 
+            # Generate the data
             # Reset the variables to the initial values in the cache
             data_model.getVariables().readFromStream(ROOT.istringstream(var_cache.str()), False)
             data_set_func = data_model.generate(variables)
+            data_cache = None
+            if do_bin_data:
+                data_cache = data_set_func
+                data_set_func = data_cache.binnedClone()
+            
     
             if not data_set_func:
                 print "Background entries are much too low, need to estimate with FC or Rolke."

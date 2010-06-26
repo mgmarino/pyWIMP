@@ -8,6 +8,7 @@ import OscillationSensitivityCalculation as osc
 import DataCalculation as dat
 from  ..utilities.utilities import unroll_RooAbsPdf
 from pyWIMP.DMModels.gaussian_signal import GaussianSignalModel 
+from pyWIMP.DMModels.tritium_decay_model import TritiumDecayModel 
 
 class WIMPModel:
     """
@@ -23,6 +24,8 @@ class WIMPModel:
         return {'total_time' : ('Total time (year)', 5),
                 'threshold' : ('Threshold (keV)', 1),
                 'energy_max' : ('Maximum energy (keV)', 50),
+                'num_time_bins' : ('Number of time bins, 0 means unbinned', 0),
+                'num_energy_bins' : ('Number of energy bins, 0 means unbinned', 0),
                 'mass_of_detector' : ('Mass of detector (kg)', 1),
                 'background_rate' : ('Background rate (counts/keV/kg/day)', 0.1),
                 'tritium_activation_rate' : ('Tritium activation rate (counts/kg/day)', 200),
@@ -68,6 +71,9 @@ will be displayed during the program.
             self.print_level = -1
             self.verbose = False
 
+        self.do_bin_data = False
+        if self.num_energy_bins != 0 and self.num_time_bins != 0: self.do_bin_data = True
+
     # overload this function for derived classes.
     def initialize(self):
 
@@ -85,6 +91,8 @@ will be displayed during the program.
             energy_threshold=self.threshold,
             energy_max=self.energy_max)
 
+        if self.num_energy_bins != 0: self.basevars.get_energy().setBins(int(self.num_energy_bins))
+        if self.num_time_bins != 0: self.basevars.get_time().setBins(int(self.num_time_bins))
         self.variables = ROOT.RooArgSet()
         if self.constant_time:
             self.basevars.get_time().setVal(0)
@@ -113,7 +121,7 @@ will be displayed during the program.
             # The following has not been normalized to per-nucleon yet.
             self.model_normal = ROOT.RooRealVar("model_normal", 
                                                 "WIMP-nucleus #sigma", 
-                                                0, -0.01, 0.1, 'pb')
+                                                0, -1e-15, 0.1, 'pb')
             self.wimpClass = WIMPModel(self.basevars,
                 mass_of_wimp=self.wimp_mass,
                 kilograms = self.mass_of_detector,
@@ -226,7 +234,7 @@ will be displayed during the program.
                 self.test_variable, 
                 self.norm, 
                 self.variables, 
-                self.total_counts, 
+                self.do_bin_data, 
                 self.number_iterations, 
                 self.confidence_level)
 

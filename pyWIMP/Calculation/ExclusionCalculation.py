@@ -22,7 +22,7 @@ class ExclusionCalculation(BaseCalculation.BaseCalculation):
                                         tolerance = 0.001):
     
         tolerance = math.fabs(tolerance)
-        number_of_points = 100
+        number_of_points = 50
         distance_from_min = 20.
         #pars = model.getParameters(data)
         nll = model.createNLL(data, ROOT.RooFit.Verbose(verbose))
@@ -160,7 +160,7 @@ class ExclusionCalculation(BaseCalculation.BaseCalculation):
         step_size = 0.01
         
         # finding unbounded, upper limit
-        self.logging("Finding unbound upper")
+        #self.logging("Finding unbound upper")
         unbounded_start = best_fit 
         while (unbounded_start <= model_amplitude.getMax()): 
             # If we overshoot, check it.
@@ -189,7 +189,6 @@ class ExclusionCalculation(BaseCalculation.BaseCalculation):
         # otherwise it's exactly the same as the unbounded limit
         step_size = 0.01
         bounded_limit = unbounded_upper_limit
-        #self.logging("Finding bound upper")
         if best_fit < 0:
             bounded_start = bounded_curve.Eval(0) 
             while (bounded_start <= model_amplitude.getMax()): 
@@ -199,6 +198,7 @@ class ExclusionCalculation(BaseCalculation.BaseCalculation):
                        step_size /= 2.
                 bounded_start += step_size
                 if math.fabs(bounded_curve.Eval(bounded_start) - conf_level) < tolerance: break 
+            bounded_limit = bounded_start 
 
         #self.logging("Exiting")
         # Save these bounds in the output dictionary
