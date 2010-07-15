@@ -2,6 +2,7 @@ import ROOT
 import os
 import sys
 from exceptions import Exception
+from ..utilities.utilities import rescale_frame
 class BaseCalculation:
 
     def __init__(self, exit_manager = None):
@@ -106,6 +107,16 @@ class BaseCalculation:
         # Save the values of the variables to reset after fitting
         var_cache = ROOT.ostringstream()
         data_model.getVariables().writeToStream(var_cache, False)
+        # Looking for whether or not we have info 
+        scaling = 1.
+        axis_title = "Counts/keV"
+        if "mass_of_detector" in self.input_variables.keys()\
+           and "total_time" in self.input_variables.keys():
+            kilos = self.input_variables["mass_of_detector"]
+            time_in_years = self.input_variables["total_time"]
+            scaling = 1./(kilos*time_in_years*365.25)
+            axis_title = "Counts/keV/kg/d"
+
         while i < number_iterations:
             #ROOT.RooTrace.dump(ROOT.cout, True)
             #ROOT.RooTrace.mark()
@@ -151,17 +162,46 @@ class BaseCalculation:
             i += 1
     
             if self.show_plots:
-                var_iter = variables.createIterator()
+                var_iter = model.getObservables(data_set_func).createIterator()
                 while 1:
                     var_obj = var_iter.Next()
                     if not var_obj: break
                     aframe = var_obj.frame()
-                    data_set_func.plotOn(aframe)
+                    ROOT.RooAbsData.plotOn(data_set_func, aframe)
                     model.plotOn(aframe)
+                    model.plotOn(aframe, 
+                         ROOT.RooFit.Components("WIMPPDF_With_Time_And_Escape_Vel"), 
+                         ROOT.RooFit.LineStyle(ROOT.RooFit.kDashed))
+                    model.plotOn(aframe, 
+                         ROOT.RooFit.Components("*Gauss_Signal*"), 
+                         ROOT.RooFit.LineStyle(ROOT.RooFit.kDashed))
+                
+                    model.plotOn(aframe, 
+                         ROOT.RooFit.Components("flat_*"), 
+                         ROOT.RooFit.LineWidth(4),
+                         ROOT.RooFit.LineStyle(ROOT.RooFit.kDotted),
+                         ROOT.RooFit.LineColor(ROOT.RooFit.kRed))
+                    model.plotOn(aframe, 
+                         ROOT.RooFit.Components("gamma*"), 
+                         ROOT.RooFit.LineWidth(4),
+                         ROOT.RooFit.LineColor(ROOT.RooFit.kRed))
+                    aframe.SetTitle("%s (Final fit, %g CL, #sigma: %g pb)" % 
+                                    (self.plot_base_name, cl, 
+                                     mult_factor*model_amplitude.getVal()))
+                    bin_width = aframe.getFitRangeBinW()
+                    axis = rescale_frame(self.c1, aframe, scaling/bin_width, axis_title)
+                    axis.CenterTitle()
+                    axis.SetTitleOffset(1.09)
                     aframe.Draw()
+                    axis.Draw()
                     self.c1.Update()
-                    raw_input("Hit Enter to continue")
-                    
+                    title = aframe.GetTitle()
+                    title = title.replace(' ','').replace('(','').replace(')','').replace(',','') 
+                    self.c1.Print(title + ("%s.eps" % var_obj.GetName()))
+                    if not self.print_out_plots:
+                        raw_input("Hit Enter to continue")
+ 
+                   
  
             # ROOT doesn't play nicely with python always, 
             # so we have to delete by hand

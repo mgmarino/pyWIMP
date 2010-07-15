@@ -42,11 +42,11 @@ class ExclusionCalculation(BaseCalculation.BaseCalculation):
 
         if conf_level == 0: return None 
 
-        min_value = model_amplitude.getVal() - distance_from_min 
+        min_value = model_amplitude.getVal() - conf_level*model_amplitude.getError() 
         if min_value > 0: min_value = 0
         if min_value < model_amplitude.getMin(): min_value = model_amplitude.getMin()
         
-        max_range = model_amplitude.getVal() + 50
+        max_range = model_amplitude.getVal() + conf_level*model_amplitude.getError() 
         if max_range < 10: max_range = 50
         if max_range > model_amplitude.getMax(): max_range = model_amplitude.getMax()
 
@@ -69,6 +69,8 @@ class ExclusionCalculation(BaseCalculation.BaseCalculation):
             if times_through > 10:
                 times_through = 0
                 test_range *= 2
+            # This is a dense loop, so checking if we should get out
+            if self.is_exit_requested(): return None
 
         # Make sure we don't undershoot
         #self.logging("Checking for undershoot")
@@ -80,6 +82,8 @@ class ExclusionCalculation(BaseCalculation.BaseCalculation):
                 model_amplitude.setMax(model_amplitude.getVal()*2)
             minuit.migrad()
             if max_range > 1e16: break
+            # This is a dense loop, so checking if we should get out
+            if self.is_exit_requested(): return None
 
         self.logging("Min, Max: ", min_value, max_range)
         model_amplitude.setVal(0)
@@ -207,6 +211,8 @@ class ExclusionCalculation(BaseCalculation.BaseCalculation):
         output_dict['bounded_limit'] = bounded_limit*mult_factor
         output_dict['mult_factor'] = mult_factor
         
+        model_amplitude.setVal(bounded_limit)
+        minuit.migrad()
 
         # Return the results
         for obj in [nll, minuit]:
