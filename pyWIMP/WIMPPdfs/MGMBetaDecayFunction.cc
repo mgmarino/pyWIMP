@@ -8,6 +8,7 @@
 
  #include "MGMBetaDecayFunction.hh" 
  #include <math.h> 
+ #include "TMath.h"
 
  ClassImp(MGMBetaDecayFunction) 
 
@@ -38,6 +39,10 @@
    if (fEnergy >= fQValue) return 1e-15;
    Double_t p = sqrt(pow(fEnergy + fMassOfElectron, 2) - pow(fMassOfElectron, 2));
    Double_t func = p*(fEnergy + fMassOfElectron)*pow(fQValue - fEnergy, 2);  
+   Double_t v = sqrt(1 - 1/pow(fEnergy/fMassOfElectron + 1, 2));
+   Double_t x = 2*TMath::TwoPi()*(1/137.)/v;
+   Double_t fermi_fuction = x/(1-exp(-x))*(1.002037 - 0.001427*v); 
+   func *= fermi_fuction;
    return ( func > 1e-15 ? func : 1e-15 );
  } 
 
