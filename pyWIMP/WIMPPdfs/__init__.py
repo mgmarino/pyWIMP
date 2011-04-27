@@ -3,6 +3,7 @@ import os
 import glob
 import re
 import exceptions
+ROOT.PyConfig.IgnoreCommandLineOptions = True
 
 delineate = '*************************************'
 for i in range(len(__name__)):
