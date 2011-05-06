@@ -249,7 +249,6 @@ class DataExclusion(WIMPModel):
         del adict['background_rate']
         adict['fix_l_line_ratio'] = ('Fix ratio of the Ge and Zn L-lines', False)
         adict['data_file'] = ('Name of data root file', 'temp.root')
-        adict['number_of_bins'] = ('Number of bins to use.  0 means un-binned.  [default 0]', 0)
         adict['object_name'] = ("""Name of object inside data file. 
 This can be a:                                             
                                                                 
@@ -301,9 +300,10 @@ a subset of the TTree and pass into RooDataSet.
             self.basevars.get_time().setConstant(True)
             self.basevars.get_energy().setVal(0)
             self.basevars.get_energy().setConstant(True)
-            if self.number_of_bins != 0:
-                self.basevars.get_energy().setBins(int(self.number_of_bins))
-                self.basevars.get_time().setBins(int(self.number_of_bins))
+            if self.num_energy_bins != 0:
+                self.basevars.get_energy().setBins(int(self.num_energy_bins))
+            if self.num_time_bins != 0:
+                self.basevars.get_time().setBins(int(self.num_time_bins))
 
             branches = self.workspace.GetListOfBranches()
             efficiency = "" 
@@ -366,7 +366,7 @@ a subset of the TTree and pass into RooDataSet.
             print "Requested: %s, isn't a TTree or TH1!" % self.data_set_name
             raise TypeError
 
-        if self.number_of_bins != 0:
+        if self.num_energy_bins != 0 or self.num_time_bins != 0:
             self.original_data_set = self.data_set_model
             self.data_set_model = self.original_data_set.binnedClone()
 
