@@ -8,23 +8,10 @@
 #define _MGMPiecewiseFunction_hh_
 
 #include "RooRealProxy.h"
-#include "RooAbsReal.h"
-#include <set>
- 
-struct MGMRegion {
-    Double_t beginning;
-    Double_t end;
-    MGMRegion(Double_t abeg = 0, Double_t anend = 0): beginning(abeg), end(anend) {}
-};
+#include "RooAbsPdf.h"
 
-struct MGMRegionCompare {
-    // This function allows us to make sure we have no overlapping
-    // regions
-    bool operator() (const MGMRegion& lhs, const MGMRegion& rhs) const
-    { return lhs.end < rhs.beginning; }
-};
-
-class MGMPiecewiseFunction : public RooAbsReal {
+class MGMPiecewiseRegions;
+class MGMPiecewiseFunction : public RooAbsPdf {
 public:
   MGMPiecewiseFunction() {} ; 
   MGMPiecewiseFunction(const char *name, const char *title,
@@ -33,14 +20,14 @@ public:
   virtual TObject* clone(const char* newname) const { return new MGMPiecewiseFunction(*this,newname); }
   inline virtual ~MGMPiecewiseFunction() { }
 
-  // Returns false if can't be inserted (overlap or poor construction)
-  virtual Bool_t InsertNewRegion(Double_t beginning, Double_t end);
-  virtual inline void ClearRegions() { fSetOfRegions.clear(); }
+  void SetRegionsOfValidity(const MGMPiecewiseRegions* reg) { fRegions = reg; }
 
+  Int_t getAnalyticalIntegral(RooArgSet& allVars, RooArgSet& analVars, const char* /*rangeName*/) const;
+  Double_t analyticalIntegral(Int_t code, const char* rangeName) const;
 protected:
 
-  std::set<MGMRegion, MGMRegionCompare> fSetOfRegions; 
   RooRealProxy fVariable ;
+  const MGMPiecewiseRegions* fRegions;
   
   Double_t evaluate() const ;
 

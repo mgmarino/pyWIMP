@@ -5,6 +5,8 @@
 #pragma link C++ class MGMWimpHelmFFSquared+;
 #pragma link C++ class MGMWimpTimeFunction+;
 #pragma link C++ class MGMPiecewiseFunction+;
+#pragma link C++ defined_in "MGMPiecewiseRegions.hh";
 #pragma link C++ class MGMErfcFunction+;
 #pragma link C++ class MGMPolyPlusExponential+;
 #pragma link C++ class MGMBetaDecayFunction+;
+#pragma link C++ class MGMExponential+;
