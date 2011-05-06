@@ -38,7 +38,10 @@
 
  Double_t MGMErfcFunction::evaluate() const 
  { 
-   Double_t func = 0.5 * ( erfc( (fEnergy - fMean)/(sqrt(2)*fSigma) ) ) + fOffset;
+   Double_t func = fOffset;
+   if (fSigma != 0) {
+       func +=  0.5 * ( erfc( (fEnergy - fMean)/(sqrt(2)*fSigma) ) );
+   } else if (fEnergy < fMean) func += 1;
    return ( func > 1e-7 ? func : 1e-7 );
  } 
 
@@ -50,8 +53,14 @@ Int_t MGMErfcFunction::getAnalyticalIntegral(RooArgSet& allVars, RooArgSet& anal
 
 Double_t MGMErfcFunction::integralEvaluateAt(Double_t value) const
 {
-   Double_t func = 0.5*(value - exp(-0.5*pow((value - fMean)/fSigma, 2.))*sqrt(2/TMath::Pi())*fSigma 
-                   + (fMean-value)*erf((value - fMean)/(sqrt(2)*fSigma)));
+   Double_t func;
+   if (fSigma == 0) {
+     if (value > fMean) func = 0.5*fMean;
+     else func = value - 0.5*fMean;
+   } else{ 
+     func = 0.5*(value - exp(-0.5*pow((value - fMean)/fSigma, 2.))*sqrt(2/TMath::Pi())*fSigma 
+            + (fMean-value)*erf((value - fMean)/(sqrt(2)*fSigma)));
+   }
    return func;
 }
 
