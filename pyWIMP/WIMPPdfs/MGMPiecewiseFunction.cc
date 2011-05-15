@@ -47,9 +47,9 @@ Int_t MGMPiecewiseFunction::getAnalyticalIntegral(RooArgSet& allVars, RooArgSet&
 Double_t MGMPiecewiseFunction::analyticalIntegral(Int_t code, const char* rangeName) const
 {
    assert(code==1);
-   if (!fRegions) return 1; 
    Double_t max = fVariable.max(rangeName);
    Double_t min = fVariable.min(rangeName);
+   if (!fRegions) return max-min; 
 
    Double_t sum = 0.0;
    fRegions->InitializeRegionIterator(min, max);

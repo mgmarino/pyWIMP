@@ -22,8 +22,7 @@ Bool_t MGMPiecewiseRegions::InsertNewRegion(Double_t beginning, Double_t end)
 Bool_t MGMPiecewiseRegions::IsInAcceptedRegion(Double_t val) const
 {
   MGMRegion temp(val, val);
-  if ( fSetOfRegions.find( temp ) != fSetOfRegions.end() ) return true; 
-  return false;
+  return ( fSetOfRegions.find( temp ) != fSetOfRegions.end() ); 
 }
 
 void MGMPiecewiseRegions::InitializeRegionIterator(Double_t beginning, Double_t end) const
@@ -45,26 +44,18 @@ const MGMPiecewiseRegions::MGMRegion*
   MGMPiecewiseRegions::GetNextRegion() const
 {
   static MGMRegion tempRegion;
-  const MGMRegion* tempRet = NULL;
   if ( fCurrentIter == fSetOfRegions.end() ) return NULL;
-  tempRet = &(*fCurrentIter);
-  if ( fCurrentIter != fMaxIter ) {
-    if ( tempRet->fBegin < fRequestedRegion.fBegin ) {
-      tempRegion.fBegin = fRequestedRegion.fBegin;
-      tempRegion.fEnd = tempRet->fEnd;
-      tempRet = &tempRegion;
-    }
-    fCurrentIter++;
-    return tempRet;
+  tempRegion = *fCurrentIter;
+  if ( tempRegion.fBegin < fRequestedRegion.fBegin ) {
+    tempRegion.fBegin = fRequestedRegion.fBegin;
   }
-  // This means the current Iter == fMaxIter
-  if ( tempRet->fEnd > fRequestedRegion.fEnd ) {
-    tempRegion.fBegin = tempRet->fBegin;
+  if ( tempRegion.fEnd > fRequestedRegion.fEnd ) {
     tempRegion.fEnd = fRequestedRegion.fEnd;
-    tempRet = &tempRegion;
   }
-  fCurrentIter = fSetOfRegions.end();
-  return tempRet;
+  
+  if ( fCurrentIter != fMaxIter ) fCurrentIter++;
+  else fCurrentIter = fSetOfRegions.end();
+  return &tempRegion;
 
 }
 
