@@ -10,3 +10,4 @@
 #pragma link C++ class MGMPolyPlusExponential+;
 #pragma link C++ class MGMBetaDecayFunction+;
 #pragma link C++ class MGMExponential+;
+#pragma link C++ class MGMExponentialPlusSinusoid+;
