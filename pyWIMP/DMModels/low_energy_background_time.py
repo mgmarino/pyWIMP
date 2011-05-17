@@ -201,6 +201,13 @@ class FittingModelTime(BaseModel):
 
     def set_frequency(self, val):
         self.frequency.setVal(val)
+        self.frequency.setConstant(True)
+
+    def set_freq_with_range(self, val, lower, upper):
+        self.frequency.setConstant(False)
+        self.frequency.setVal(val)
+        self.frequency.setMax(upper)
+        self.frequency.setMin(lower)
 
     def set_osc_ampl_const(self, val):
         self.set_osc_ampl(val)
