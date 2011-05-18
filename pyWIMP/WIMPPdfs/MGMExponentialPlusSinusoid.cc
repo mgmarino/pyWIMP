@@ -15,58 +15,41 @@ using TMath::TwoPi;
  ClassImp(MGMExponentialPlusSinusoid) 
  MGMExponentialPlusSinusoid::MGMExponentialPlusSinusoid(
               const char *name, const char *title,
-	      RooAbsReal& _x, 
-              RooAbsReal& _c, 
-              RooAbsReal& _ampl, 
+              RooAbsReal& _x, 
               RooAbsReal& _per, 
               RooAbsReal& _phase) : 
-  MGMExponential(name, title, _x, _c), 
-  fAmplitude("amplitude", "amplitude", this, _ampl),
+  MGMPiecewiseFunction(name, title, _x), 
   fPeriod("period", "period", this, _per),
   fPhase("phase", "phase", this, _phase) 
 {}
 
 MGMExponentialPlusSinusoid::MGMExponentialPlusSinusoid(const MGMExponentialPlusSinusoid& other, const char* name) : 
-  MGMExponential(other, name),
-  fAmplitude("amplitude", this, other.fAmplitude),
+  MGMPiecewiseFunction(other, name),
   fPeriod("period", this, other.fPeriod),
   fPhase("phase", this, other.fPhase)
 {}
 
 Double_t MGMExponentialPlusSinusoid::evaluate() const 
 { 
-  if (!fRegions || fRegions->IsInAcceptedRegion(x)) { 
-    if (fAmplitude == 0.0) return MGMExponential::evaluate();
-    else return exp(c*x)*(1 + fAmplitude*sin(TwoPi()*(x/fPeriod - fPhase)));
+  Double_t val = 1e-16;
+  if (!fRegions || fRegions->IsInAcceptedRegion(fVariable)) { 
+    val = 0.5*(1 + sin(TwoPi()*(fVariable/fPeriod - fPhase))); 
   }
   // Otherwise it is in a region which we have inserted, return 0
   //return 0;
-  return 1e-16;
+  return (val < 1e-16) ? 1e-16 : val;
 } 
 
 Double_t MGMExponentialPlusSinusoid::IntegralValueAtPoint(Double_t point) const
 {
-  // This is only called by analyticalIntegral, and the check for fAmplitude !=
-  // 0 has already been made.
-  Double_t trig_arg = TwoPi()*(point/fPeriod - fPhase);
-  if ( c != 0.0 ) {
-    Double_t scratch = fPeriod*fPeriod*c*c + TwoPi()*TwoPi();
-    return (1./(c*scratch))*exp(c*point)*(
-                                      fAmplitude*c*c*fPeriod*fPeriod*sin(trig_arg) -
-                                      TwoPi()*fAmplitude*c*fPeriod*cos(trig_arg)
-                                      ) 
-                                      + (1./c)*exp(c*point); 
-  } else {
-    return point - (fAmplitude*fPeriod/TwoPi())*cos(trig_arg);
-  }
+  return 0.5*(point - fPeriod*cos(TwoPi()*(point/fPeriod - fPhase))/TwoPi());
 }
 
 Double_t MGMExponentialPlusSinusoid::analyticalIntegral(Int_t code, const char* rangeName) const
 {
    assert(code==1);
-   if (fAmplitude == 0.0) return MGMExponential::analyticalIntegral(code, rangeName); 
-   Double_t max = x.max(rangeName);
-   Double_t min = x.min(rangeName);
+   Double_t max = fVariable.max(rangeName);
+   Double_t min = fVariable.min(rangeName);
    if (!fRegions) return (IntegralValueAtPoint(max) - IntegralValueAtPoint(min)); 
 
    Double_t sum = 0.0;

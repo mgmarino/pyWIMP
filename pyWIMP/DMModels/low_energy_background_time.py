@@ -93,7 +93,7 @@ class FittingModelTime(BaseModel):
         time_pdf_flat = pdfs.MGMPiecewiseFunction("time_pdf_flat_all", "time_pdf_flat_all", self.basevars.get_time())
         time_pdf_flat.SetRegionsOfValidity(livetime) 
 
-        time_exp = ROOT.RooRealVar("time_exp", "time_exp", -0.01, -1, -1e-16)
+        time_exp = ROOT.RooRealVar("time_exp", "time_exp", -0.01, -1, 0.2)
         time_pdf_exp = pdfs.MGMExponential("time_pdf_exp", "time_pdf_exp", self.basevars.get_time(), time_exp)
         time_pdf_exp.SetRegionsOfValidity(livetime) 
 
@@ -109,7 +109,7 @@ class FittingModelTime(BaseModel):
         erf_pdf_flat_regions.InsertNewRegion(2.5, 10.7) 
         erf_pdf.SetRegionsOfValidity(erf_pdf_flat_regions)
         #erf_pdf_whole = ROOT.RooProdPdf("high_erf_whole", "high_erf_whole", erf_pdf, time_pdf_flat)
-        erf_pdf_whole = ROOT.RooProdPdf("high_erf_whole", "high_erf_whole", erf_pdf, time_pdf_exp)
+        erf_pdf_whole = ROOT.RooProdPdf("high_erf_whole", "high_erf_whole", erf_pdf, time_pdf_flat)#time_pdf_exp)
 
         self.save_list.extend([flat_coef, energy_pdf_flat, erf_amp, erf_pdf, energy_pdf_flat_regions, erf_pdf_flat_regions])
         self.save_list.extend([time_pdf_flat, energy_flat_whole, erf_pdf_whole])
@@ -158,12 +158,12 @@ class FittingModelTime(BaseModel):
         self.period = ROOT.RooRealVar("osc_period", "osc_period", 1., 0.5, 1.5) 
         self.period.setConstant(True)
         osc_time_pdf = ROOT.MGMExponentialPlusSinusoid("osc_pdf", "osc_pdf", 
-                                                       self.basevars.get_time(), time_exp, 
-                                                       self.osc_ampl, 
+                                                       self.basevars.get_time(),
                                                        self.period, 
                                                        self.phase) 
         osc_time_pdf.SetRegionsOfValidity(livetime)
-        self.save_list.append(osc_time_pdf)
+        total_time_pdf = ROOT.RooAddPdf("total_time_sig", "total_time_sig", osc_time_pdf, time_pdf_flat, self.osc_ampl)
+        self.save_list.append([osc_time_pdf, total_time_pdf])
 
 
         energy_exp_pdf = ROOT.RooExponential("energy_pdf_exp", 
@@ -171,8 +171,8 @@ class FittingModelTime(BaseModel):
                                              basevars.get_energy(),
                                              exp_constant_one)
 
-        exp_pdf_whole = ROOT.RooProdPdf("exp_pdf_whole", "exp_pdf_whole", energy_exp_pdf, osc_time_pdf)
-        low_erf_whole = ROOT.RooProdPdf("low_erf_whole", "low_erf_whole", low_erf_pdf, time_pdf_exp)
+        exp_pdf_whole = ROOT.RooProdPdf("exp_pdf_whole", "exp_pdf_whole", energy_exp_pdf, total_time_pdf)
+        low_erf_whole = ROOT.RooProdPdf("low_erf_whole", "low_erf_whole", low_erf_pdf, time_pdf_flat)#time_pdf_exp)
 
         self.low_pdf_list.add(low_erf_whole)
         self.low_coefficienct_list.add(low_flat_coef)

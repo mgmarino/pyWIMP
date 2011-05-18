@@ -7,16 +7,13 @@
 #ifndef _MGMExponentialPlusSinusoid_hh_
 #define _MGMExponentialPlusSinusoid_hh_
 
-#include "MGMExponential.hh"
-class MGMPiecewiseRegions;
+#include "MGMPiecewiseFunction.hh"
  
-class MGMExponentialPlusSinusoid : public MGMExponential {
+class MGMExponentialPlusSinusoid : public MGMPiecewiseFunction {
 public:
-  MGMExponentialPlusSinusoid() : MGMExponential() {} ; 
+  MGMExponentialPlusSinusoid() : MGMPiecewiseFunction() {} ; 
   MGMExponentialPlusSinusoid(const char *name, const char *title,
-	      RooAbsReal& _x, 
-              RooAbsReal& _c, 
-              RooAbsReal& _ampl, 
+              RooAbsReal& _x, 
               RooAbsReal& _per, 
               RooAbsReal& _phase);
   MGMExponentialPlusSinusoid(const MGMExponentialPlusSinusoid& other, 
@@ -29,7 +26,6 @@ public:
 protected:
   
   Double_t evaluate() const ;
-  RooRealProxy fAmplitude;
   RooRealProxy fPeriod;
   RooRealProxy fPhase;
 
