@@ -10,24 +10,24 @@ def rescale_frame(canvas, frame, scale, title):
     correct.  Returns axis in case anything else needs to be done.
     """
     import ROOT
-    yaxis = frame.GetYaxis()
-    yaxis.SetTickLength(0)
-    yaxis.SetNdivisions(0)
-    yaxis.SetLabelSize(0)
-    yaxis.SetTitle("")
-    yaxis.SetLabelColor(10)
-    yaxis.SetAxisColor(10)
+    xaxis = frame.GetXaxis()
+    xaxis.SetTickLength(0)
+    xaxis.SetNdivisions(0)
+    xaxis.SetLabelSize(0)
+    xaxis.SetTitle("")
+    xaxis.SetLabelColor(10)
+    xaxis.SetAxisColor(10)
     frame.Draw()
     canvas.Update()
-    amax = frame.GetMaximum()
-    amin = frame.GetMinimum()
+    amax = xaxis.GetXmax()
+    amin = xaxis.GetXmin()
     new_max = amax*scale
     new_min = amin*scale
     x = canvas.PadtoX
     y = canvas.PadtoY
     
     axis = ROOT.TGaxis(x(canvas.GetUxmin()), y(canvas.GetUymin()),
-                       x(canvas.GetUxmin()), y(canvas.GetUymax()),
+                       x(canvas.GetUxmax()), y(canvas.GetUymin()),
                        new_min,new_max,510,"")
     axis.SetTitle(title)
     axis.Draw()
