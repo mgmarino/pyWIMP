@@ -18,18 +18,18 @@ using TMath::TwoPi;
 	      RooAbsReal& _x, 
               RooAbsReal& _c, 
               RooAbsReal& _ampl, 
-              RooAbsReal& _freq, 
+              RooAbsReal& _per, 
               RooAbsReal& _phase) : 
   MGMExponential(name, title, _x, _c), 
   fAmplitude("amplitude", "amplitude", this, _ampl),
-  fFrequency("frequency", "frequency", this, _freq),
+  fPeriod("period", "period", this, _per),
   fPhase("phase", "phase", this, _phase) 
 {}
 
 MGMExponentialPlusSinusoid::MGMExponentialPlusSinusoid(const MGMExponentialPlusSinusoid& other, const char* name) : 
   MGMExponential(other, name),
   fAmplitude("amplitude", this, other.fAmplitude),
-  fFrequency("frequency", this, other.fFrequency),
+  fPeriod("period", this, other.fPeriod),
   fPhase("phase", this, other.fPhase)
 {}
 
@@ -37,7 +37,7 @@ Double_t MGMExponentialPlusSinusoid::evaluate() const
 { 
   if (!fRegions || fRegions->IsInAcceptedRegion(x)) { 
     if (fAmplitude == 0.0) return MGMExponential::evaluate();
-    else return exp(c*x)*(1 + fAmplitude*sin(TwoPi()*fFrequency*x + fPhase));
+    else return exp(c*x)*(1 + fAmplitude*sin(TwoPi()*(x/fPeriod - fPhase)));
   }
   // Otherwise it is in a region which we have inserted, return 0
   //return 0;
@@ -48,15 +48,16 @@ Double_t MGMExponentialPlusSinusoid::IntegralValueAtPoint(Double_t point) const
 {
   // This is only called by analyticalIntegral, and the check for fAmplitude !=
   // 0 has already been made.
-  Double_t trig_arg = TwoPi()*fFrequency*point + fPhase;
+  Double_t trig_arg = TwoPi()*(point/fPeriod - fPhase);
   if ( c != 0.0 ) {
-    Double_t scratch = c*c + TwoPi()*TwoPi()*fFrequency*fFrequency;
+    Double_t scratch = fPeriod*fPeriod*c*c + TwoPi()*TwoPi();
     return (1./(c*scratch))*exp(c*point)*(
-                                      fAmplitude*c*c*sin(trig_arg) -
-                                      TwoPi()*fAmplitude*c*fFrequency*cos(trig_arg) +
-                                      scratch); 
+                                      fAmplitude*c*c*fPeriod*fPeriod*sin(trig_arg) -
+                                      TwoPi()*fAmplitude*c*fPeriod*cos(trig_arg)
+                                      ) 
+                                      + (1./c)*exp(c*point); 
   } else {
-    return (point-fAmplitude/(TwoPi()*fFrequency))*cos(trig_arg);
+    return point - (fAmplitude*fPeriod/TwoPi())*cos(trig_arg);
   }
 }
 

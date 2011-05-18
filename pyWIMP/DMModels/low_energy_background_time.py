@@ -153,14 +153,14 @@ class FittingModelTime(BaseModel):
                                             low_erf_sig, 
                                             low_erf_offset)
 
-        self.phase    = ROOT.RooRealVar("phase", "phase", 0, -ROOT.TMath.Pi(), ROOT.TMath.Pi()) 
+        self.phase    = ROOT.RooRealVar("phase", "phase", 0, -0.5, 0.5)
         self.osc_ampl = ROOT.RooRealVar("osc_amplitude", "osc_amplitude", 0, 1.) 
-        self.frequency = ROOT.RooRealVar("osc_frequency", "osc_frequency", 1., 0.1, 10.) 
-        self.frequency.setConstant(True)
+        self.period = ROOT.RooRealVar("osc_period", "osc_period", 1., 0.5, 1.5) 
+        self.period.setConstant(True)
         osc_time_pdf = ROOT.MGMExponentialPlusSinusoid("osc_pdf", "osc_pdf", 
                                                        self.basevars.get_time(), time_exp, 
                                                        self.osc_ampl, 
-                                                       self.frequency, 
+                                                       self.period, 
                                                        self.phase) 
         osc_time_pdf.SetRegionsOfValidity(livetime)
         self.save_list.append(osc_time_pdf)
@@ -199,15 +199,21 @@ class FittingModelTime(BaseModel):
     def get_osc_ampl(self):
         return self.osc_ampl
 
-    def set_frequency(self, val):
-        self.frequency.setVal(val)
-        self.frequency.setConstant(True)
+    def get_osc_period(self):
+        return self.period
 
-    def set_freq_with_range(self, val, lower, upper):
-        self.frequency.setConstant(False)
-        self.frequency.setVal(val)
-        self.frequency.setMax(upper)
-        self.frequency.setMin(lower)
+    def get_osc_phase(self):
+        return self.phase
+
+    def set_period(self, val):
+        self.period.setVal(val)
+        self.period.setConstant(True)
+
+    def set_period_with_range(self, val, lower, upper):
+        self.period.setConstant(False)
+        self.period.setVal(val)
+        self.period.setMax(upper)
+        self.period.setMin(lower)
 
     def set_osc_ampl_const(self, val):
         self.set_osc_ampl(val)

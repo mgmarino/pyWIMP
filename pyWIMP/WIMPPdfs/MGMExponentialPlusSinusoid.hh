@@ -17,7 +17,7 @@ public:
 	      RooAbsReal& _x, 
               RooAbsReal& _c, 
               RooAbsReal& _ampl, 
-              RooAbsReal& _freq, 
+              RooAbsReal& _per, 
               RooAbsReal& _phase);
   MGMExponentialPlusSinusoid(const MGMExponentialPlusSinusoid& other, 
                              const char* name=0);
@@ -30,7 +30,7 @@ protected:
   
   Double_t evaluate() const ;
   RooRealProxy fAmplitude;
-  RooRealProxy fFrequency;
+  RooRealProxy fPeriod;
   RooRealProxy fPhase;
 
   Double_t IntegralValueAtPoint(Double_t point) const;
