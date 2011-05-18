@@ -19,10 +19,10 @@ def rescale_frame(canvas, frame, scale, title):
     yaxis.SetAxisColor(10)
     frame.Draw()
     canvas.Update()
-    max = frame.GetMaximum()
-    min = frame.GetMinimum()
-    new_max = max*scale
-    new_min = min*scale
+    amax = frame.GetMaximum()
+    amin = frame.GetMinimum()
+    new_max = amax*scale
+    new_min = amin*scale
     x = canvas.PadtoX
     y = canvas.PadtoY
     
