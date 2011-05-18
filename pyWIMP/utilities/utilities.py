@@ -23,9 +23,11 @@ def rescale_frame(canvas, frame, scale, title):
     min = frame.GetMinimum()
     new_max = max*scale
     new_min = min*scale
+    x = canvas.PadtoX
+    y = canvas.PadtoY
     
-    axis = ROOT.TGaxis(canvas.GetUxmin(), canvas.GetUymin(),
-                       canvas.GetUxmin(), canvas.GetUymax(),
+    axis = ROOT.TGaxis(x(canvas.GetUxmin()), y(canvas.GetUymin()),
+                       x(canvas.GetUxmin()), y(canvas.GetUymax()),
                        new_min,new_max,510,"")
     axis.SetTitle(title)
     axis.Draw()
