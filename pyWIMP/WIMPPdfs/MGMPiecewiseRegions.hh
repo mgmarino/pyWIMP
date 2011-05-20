@@ -23,6 +23,9 @@ class MGMPiecewiseRegions {
     void InitializeRegionIterator(Double_t beginning, Double_t end) const;
     const MGMRegion* GetNextRegion() const;
 
+    // Returns how much is accepeted (integral) over a region)
+    Double_t GetAcceptanceOverRegion(Double_t beginning, Double_t end) const;
+
   protected:
    
     struct MGMRegionCompare {
