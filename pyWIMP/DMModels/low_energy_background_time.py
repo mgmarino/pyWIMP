@@ -162,7 +162,8 @@ class FittingModelTime(BaseModel):
                                                        self.period, 
                                                        self.phase) 
         osc_time_pdf.SetRegionsOfValidity(livetime)
-        total_time_pdf = ROOT.RooAddPdf("total_time_sig", "total_time_sig", osc_time_pdf, time_pdf_flat, self.osc_ampl)
+        #total_time_pdf = ROOT.RooAddPdf("total_time_sig", "total_time_sig", osc_time_pdf, time_pdf_flat, self.osc_ampl)
+        total_time_pdf = ROOT.RooAddPdf("total_time_sig", "total_time_sig", osc_time_pdf, time_pdf_exp, self.osc_ampl)
         self.save_list.append([osc_time_pdf, total_time_pdf])
 
 
@@ -171,8 +172,10 @@ class FittingModelTime(BaseModel):
                                              basevars.get_energy(),
                                              exp_constant_one)
 
-        exp_pdf_whole = ROOT.RooProdPdf("exp_pdf_whole", "exp_pdf_whole", energy_exp_pdf, time_pdf_flat)#time_pdf_exp)#time_pdf_flat) #total_time_pdf)
-        low_erf_whole = ROOT.RooProdPdf("low_erf_whole", "low_erf_whole", low_erf_pdf, total_time_pdf)#time_pdf_exp)
+        #exp_pdf_whole = ROOT.RooProdPdf("exp_pdf_whole", "exp_pdf_whole", energy_exp_pdf, time_pdf_flat)#time_pdf_exp)#time_pdf_flat) #total_time_pdf)
+        #low_erf_whole = ROOT.RooProdPdf("low_erf_whole", "low_erf_whole", low_erf_pdf, total_time_pdf)#time_pdf_exp)
+        exp_pdf_whole = ROOT.RooProdPdf("exp_pdf_whole", "exp_pdf_whole", energy_exp_pdf, total_time_pdf)#time_pdf_exp)#time_pdf_flat) #total_time_pdf)
+        low_erf_whole = ROOT.RooProdPdf("low_erf_whole", "low_erf_whole", low_erf_pdf, time_pdf_flat)#time_pdf_exp)
 
         self.low_pdf_list.add(low_erf_whole)
         self.low_coefficienct_list.add(low_flat_coef)
