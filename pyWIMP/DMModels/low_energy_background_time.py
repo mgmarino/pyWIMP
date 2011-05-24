@@ -155,6 +155,7 @@ class FittingModelTime(BaseModel):
 
         self.phase    = ROOT.RooRealVar("phase", "Phase", 0, -0.5, 0.5, "Years")
         self.osc_ampl = ROOT.RooRealVar("osc_amplitude", "Osc Amplitude", -1e-5, 1.) 
+        self.flat_ampl = ROOT.RooRealVar("flat_amplidue", "Flat Amplitude", -1e-5, 1.) 
         self.period = ROOT.RooRealVar("osc_period", "Period", 1., 0.5, 1.5, "Years") 
         self.period.setConstant(True)
         osc_time_pdf = ROOT.MGMExponentialPlusSinusoid("osc_pdf", "osc_pdf", 
@@ -163,7 +164,9 @@ class FittingModelTime(BaseModel):
                                                        self.phase) 
         osc_time_pdf.SetRegionsOfValidity(livetime)
         #total_time_pdf = ROOT.RooAddPdf("total_time_sig", "total_time_sig", osc_time_pdf, time_pdf_flat, self.osc_ampl)
-        total_time_pdf = ROOT.RooAddPdf("total_time_sig", "total_time_sig", osc_time_pdf, time_pdf_exp, self.osc_ampl)
+        #temp_time_pdf = ROOT.RooAddPdf("temp_time_sig", "temp_time_sig", osc_time_pdf, time_pdf_flat, self.osc_ampl)
+        total_time_pdf = ROOT.RooAddPdf("total_time_sig", "total_time_sig", 
+            ROOT.RooArgList(osc_time_pdf, time_pdf_exp, time_pdf_flat), ROOT.RooArgList(self.osc_ampl, self.flat_ampl), True)
         self.save_list.append([osc_time_pdf, total_time_pdf])
 
 
