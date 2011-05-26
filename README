@@ -8,3 +8,5 @@ Installation:
 2.  Make sure that python can find the base of the path, 
     that is, set PYTHONPATH to include this directory.
     This allows python to find this package.
+
+Also, have a look in the 'test' folder for some test scripts that can be run.
