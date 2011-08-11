@@ -11,3 +11,5 @@
 #pragma link C++ class MGMBetaDecayFunction+;
 #pragma link C++ class MGMExponential+;
 #pragma link C++ class MGMExponentialPlusSinusoid+;
+#pragma link C++ class MGMHistRatioFunction+;
+#pragma link C++ class MGMHistEfficiency+;
