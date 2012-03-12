@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 import pyWIMP.DMModels.wimp_model as wimp_model
 from pyWIMP.DMModels.base_model import BaseVariables
 import ROOT
@@ -5,17 +7,17 @@ import re
 #ROOT.gROOT.SetBatch()
 c1 = ROOT.TCanvas()
 c1.SetLogy()
-basevars = BaseVariables(0, 1, 0, 3.5)
+basevars = BaseVariables(0, 1, 0, 4.5)
 time = basevars.get_time()
 energy = basevars.get_energy()
 time.setVal(0)
 time.setConstant()
-mass_of_wimp = 10
+mass_of_wimp = 15
 wimp_models = []
 pdf_list = []
-mass_list = range(8,11)
-mass_list.extend([100])
-mass_list = [8.75, 100]
+#mass_list = range(8,11)
+#mass_list.extend([100])
+mass_list = [10.25]
 for mass_of_wimp in mass_list: 
     wm = wimp_model.WIMPModel(basevars, mass_of_wimp)
     
@@ -29,8 +31,8 @@ for mass_of_wimp in mass_list:
 expo_const = ROOT.RooRealVar("expo_const", "expo_const", -3.3)
 expo_model = ROOT.RooExponential("expo_model", "Exponential, e^{-3.3E}", energy, expo_const)
 flat_model = ROOT.RooPolynomial("flat_model", "Flat", energy)
-pdf_list.append((500, expo_model))
-pdf_list.append((2.5*(energy.getMax() - energy.getMin()), flat_model))
+#pdf_list.append((500, expo_model))
+#pdf_list.append((2.5*(energy.getMax() - energy.getMin()), flat_model))
 
 
 frame = energy.frame()
@@ -47,8 +49,8 @@ for norm, test1 in pdf_list:
 #                    ROOT.RooFit.Normalization(orig_time_ff, ROOT.RooAbsReal.Raw),\
 #                    ROOT.RooFit.Precision(1e-10))
 frame.SetMaximum(3000)
-frame.SetMinimum(1)
-frame.GetXaxis().SetTitle("Energy (keV)")
+frame.SetMinimum(0.01)
+frame.GetXaxis().SetTitle("Energy (keVee)")
 frame.GetXaxis().CenterTitle()
 frame.GetYaxis().SetTitle("#frac{dR}{dE} #sigma^{-1} (counts/keV/kg/yr/pb)")
 frame.GetYaxis().SetTitleOffset(1.35)

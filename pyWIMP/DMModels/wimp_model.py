@@ -6,48 +6,66 @@ class WIMPModel(BaseModel):
                  basevars, 
                  mass_of_wimp=20, 
                  kilograms=1,
-                 constant_quenching=True):
+                 constant_quenching=True,
+                 nucl_recoil = False):
         # Normally, we don't want to do this, but this keeps 
         # it from importing this module until the last moment.
         import pyWIMP.WIMPPdfs as pdfs  
         BaseModel.__init__(self, basevars)
 
         # constant quenching
-        if constant_quenching:
-            self.quenching = ROOT.RooRealVar("quenching", "quenching", 0.2)
+        if nucl_recoil == False:
+          if constant_quenching:
+            self.quenching = ROOT.RooRealVar("quenching", "quenching", 0.16)
             self.dQ_over_dE = ROOT.RooFormulaVar("dQ_over_dE", "#frac{dQ}{dE}",\
                               "1./@0", ROOT.RooArgList(self.quenching))
             self.recoil_energy = ROOT.RooFormulaVar("energy", "Energy", \
                           "@0/@1", ROOT.RooArgList(basevars.get_energy(), \
                           self.quenching))
-        else:
+          else:
+            # self.recoil_energy = ROOT.RooFormulaVar("energy", "Energy", \
+            #                           "4.03482*TMath::Power(@0,0.880165)", \
+            #                           ROOT.RooArgList(basevars.get_energy()))
+            #             self.dQ_over_dE = ROOT.RooFormulaVar("dQ_over_dE", "#frac{dQ}{dE}",\
+            #                               "3.55131*TMath::Power(@0, -0.119835)", \
+            #                               ROOT.RooArgList(basevars.get_energy()))
+            
+            #reparameterized for Edelweiss quenching factor
+            
             self.recoil_energy = ROOT.RooFormulaVar("energy", "Energy", \
-                          "4.03482*TMath::Power(@0,0.880165)", \
+                          "4.57458*TMath::Power(@0,0.84389)", \
                           ROOT.RooArgList(basevars.get_energy()))
             self.dQ_over_dE = ROOT.RooFormulaVar("dQ_over_dE", "#frac{dQ}{dE}",\
-                              "3.55131*TMath::Power(@0, -0.119835)", \
+                              "3.86044*TMath::Power(@0, -0.11561)", \
                               ROOT.RooArgList(basevars.get_energy()))
-
+        else:
+          self.quenching = ROOT.RooRealVar("quenching", "quenching", 1.0)
+          self.dQ_over_dE = ROOT.RooFormulaVar("dQ_over_dE", "#frac{dQ}{dE}",\
+                            "1./@0", ROOT.RooArgList(self.quenching))
+          self.recoil_energy = ROOT.RooFormulaVar("energy", "Energy", \
+                        "@0/@1", ROOT.RooArgList(basevars.get_energy(), \
+                        self.quenching))
+        
         self.kilograms = ROOT.RooRealVar("kilograms", "kilograms", \
                          kilograms)
 
 
         self.v_sub_E_sub_0 = ROOT.RooRealVar("v_sub_E_sub_0", \
-                        "Constant in Velocity Function", 244, "km s^-1") 
+                        "Constant in Velocity Function", 235, "km s^-1") 
         self.v_sub_E_sub_1 = ROOT.RooRealVar("v_sub_E_sub_1", \
                         "Modulation Amplitude in Velocity Function", 15, \
                         "km s^-1") 
         self.atomic_mass_of_target = ROOT.RooRealVar("atomic_mass_of_target", \
-                                "Atomic Mass of Target", 68/0.932, "amu") 
+                                "Atomic Mass of Target", 72.891/0.932, "amu") 
                                 #"Atomic Mass of Target", 68/0.932, "amu") 
         self.density_of_dark_matter = ROOT.RooRealVar("density_of_dark_matter", \
-                           "Density of Dark Matter", 0.4, "Gev c^-2 cm^-3") 
+                           "Density of Dark Matter", 0.3, "Gev c^-2 cm^-3") 
         self.speed_of_light = ROOT.RooRealVar("speed_of_light", \
                          "Speed of Light", 299792.458, "km s^-1") 
         self.v_sub_0 = ROOT.RooRealVar("v_sub_0", \
-                  "Base Velocity", 230, "km s^-1") 
+                  "Base Velocity", 270, "km s^-1") 
         self.v_sub_esc = ROOT.RooRealVar("v_sub_esc", \
-                  "Escape Velocity", 600, "km s^-1") 
+                  "Escape Velocity", 544, "km s^-1") 
         self.mass_of_target = ROOT.RooFormulaVar("mass_of_target", \
                          "Mass of Target", "0.932*@0", \
                          ROOT.RooArgList(self.atomic_mass_of_target)) 
@@ -135,7 +153,7 @@ class WIMPModel(BaseModel):
 
         self.v_sub_E = pdfs.MGMWimpTimeFunction("v_sub_E", \
                   "Velocity of the Earth",\
-                  self.v_sub_E_sub_0, self.v_sub_E_sub_1, basevars.get_time()) 
+                  self.v_sub_E_sub_0, self.v_sub_E_sub_1, basevars.get_time(), basevars.get_time_offset()) 
         self.v_sub_E.setUnit( self.v_sub_E_sub_0.getUnit() )
 
         self.v_sub_min = ROOT.RooFormulaVar("v_sub_min", \
