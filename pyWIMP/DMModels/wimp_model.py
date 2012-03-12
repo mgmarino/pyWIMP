@@ -16,28 +16,41 @@ class WIMPModel(BaseModel):
         # constant quenching
         if nucl_recoil == False:
           if constant_quenching:
-            self.quenching = ROOT.RooRealVar("quenching", "quenching", 0.16)
+            self.quenching = ROOT.RooRealVar("quenching", "quenching", 0.2)
             self.dQ_over_dE = ROOT.RooFormulaVar("dQ_over_dE", "#frac{dQ}{dE}",\
                               "1./@0", ROOT.RooArgList(self.quenching))
             self.recoil_energy = ROOT.RooFormulaVar("energy", "Energy", \
                           "@0/@1", ROOT.RooArgList(basevars.get_energy(), \
                           self.quenching))
+                          
+
+            #Edelweiss parameterization of quenching
+            #self.quenching = ROOT.RooRealVar("quenching", "quenching", 0.16)
+            #self.dQ_over_dE = ROOT.RooFormulaVar("dQ_over_dE", "#frac{dQ}{dE}",\
+            #                  "1./@0", ROOT.RooArgList(self.quenching))
+            #self.recoil_energy = ROOT.RooFormulaVar("energy", "Energy", \
+            #              "@0/@1", ROOT.RooArgList(basevars.get_energy(), \
+            #              self.quenching))
+                          
           else:
-            # self.recoil_energy = ROOT.RooFormulaVar("energy", "Energy", \
-            #                           "4.03482*TMath::Power(@0,0.880165)", \
-            #                           ROOT.RooArgList(basevars.get_energy()))
-            #             self.dQ_over_dE = ROOT.RooFormulaVar("dQ_over_dE", "#frac{dQ}{dE}",\
-            #                               "3.55131*TMath::Power(@0, -0.119835)", \
-            #                               ROOT.RooArgList(basevars.get_energy()))
+            #CoGeNT parameterization
+            self.recoil_energy = ROOT.RooFormulaVar("energy", "Energy", \
+                                       "4.03482*TMath::Power(@0,0.880165)", \
+                                       ROOT.RooArgList(basevars.get_energy()))
+            self.dQ_over_dE = ROOT.RooFormulaVar("dQ_over_dE", "#frac{dQ}{dE}",\
+                                           "3.55131*TMath::Power(@0, -0.119835)", \
+                                           ROOT.RooArgList(basevars.get_energy()))
             
             #reparameterized for Edelweiss quenching factor
             
-            self.recoil_energy = ROOT.RooFormulaVar("energy", "Energy", \
-                          "4.57458*TMath::Power(@0,0.84389)", \
-                          ROOT.RooArgList(basevars.get_energy()))
-            self.dQ_over_dE = ROOT.RooFormulaVar("dQ_over_dE", "#frac{dQ}{dE}",\
-                              "3.86044*TMath::Power(@0, -0.11561)", \
-                              ROOT.RooArgList(basevars.get_energy()))
+            #self.recoil_energy = ROOT.RooFormulaVar("energy", "Energy", \
+            #              "4.57458*TMath::Power(@0,0.84389)", \
+            #              ROOT.RooArgList(basevars.get_energy()))
+            #self.dQ_over_dE = ROOT.RooFormulaVar("dQ_over_dE", "#frac{dQ}{dE}",\
+            #                  "3.86044*TMath::Power(@0, -0.11561)", \
+            #                  ROOT.RooArgList(basevars.get_energy()))
+            
+        #nuclear recoil energy scale - no quenching.    
         else:
           self.quenching = ROOT.RooRealVar("quenching", "quenching", 1.0)
           self.dQ_over_dE = ROOT.RooFormulaVar("dQ_over_dE", "#frac{dQ}{dE}",\
@@ -56,8 +69,8 @@ class WIMPModel(BaseModel):
                         "Modulation Amplitude in Velocity Function", 15, \
                         "km s^-1") 
         self.atomic_mass_of_target = ROOT.RooRealVar("atomic_mass_of_target", \
-                                "Atomic Mass of Target", 72.891/0.932, "amu") 
-                                #"Atomic Mass of Target", 68/0.932, "amu") 
+                                #"Atomic Mass of Target", 72.891/0.932, "amu") #... why not this number? 
+                                "Atomic Mass of Target", 68/0.932, "amu") 
         self.density_of_dark_matter = ROOT.RooRealVar("density_of_dark_matter", \
                            "Density of Dark Matter", 0.3, "Gev c^-2 cm^-3") 
         self.speed_of_light = ROOT.RooRealVar("speed_of_light", \
