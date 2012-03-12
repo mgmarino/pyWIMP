@@ -42,7 +42,7 @@
  Double_t MGMWimpTimeFunction::evaluate() const 
  { 
    // ENTER EXPRESSION IN TERMS OF VARIABLE ARGUMENTS HERE 
-   return velocity_0 + velocity_1*TMath::Sin(TMath::TwoPi()*(time - offset)); //starts at Jan 1 
+   return velocity_0 + velocity_1*TMath::Sin(TMath::TwoPi()*(time + offset)); //set offset to -61./365.25 in order for this to start on Jan 1
  } 
 
 

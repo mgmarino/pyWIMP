@@ -8,7 +8,7 @@ class BaseVariables:
                  energy_threshold,\
                  energy_max,
                  use_tag = True,
-                 time_offset=61./365.25):
+                 time_offset=-61./365.25):  #default set offset so that amplitude modulation starts on Jan 1
 
         tag = ""
         if use_tag: tag = str(self.get_tag())
