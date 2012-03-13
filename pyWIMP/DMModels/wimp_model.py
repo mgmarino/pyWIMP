@@ -69,7 +69,6 @@ class WIMPModel(BaseModel):
                         "Modulation Amplitude in Velocity Function", 15, \
                         "km s^-1") 
         self.atomic_mass_of_target = ROOT.RooRealVar("atomic_mass_of_target", \
-                                #"Atomic Mass of Target", 72.891/0.932, "amu") #... why not this number? 
                                 "Atomic Mass of Target", 68/0.932, "amu") 
         self.density_of_dark_matter = ROOT.RooRealVar("density_of_dark_matter", \
                            "Density of Dark Matter", 0.3, "Gev c^-2 cm^-3") 
