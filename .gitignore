@@ -10,3 +10,6 @@ pyWIMP/lib*
 *.depend
 lib*
 .DS_Store
+*.eps
+*.root
+*~

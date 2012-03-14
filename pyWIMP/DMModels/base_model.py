@@ -7,7 +7,8 @@ class BaseVariables:
                  time_in_years,\
                  energy_threshold,\
                  energy_max,
-                 use_tag = True):
+                 use_tag = True,
+                 time_offset=-61./365.25):  #default set offset so that amplitude modulation starts on Jan 1
 
         tag = ""
         if use_tag: tag = str(self.get_tag())
@@ -19,6 +20,9 @@ class BaseVariables:
 
         self.weighting = ROOT.RooRealVar("weight%s" % tag, "Weight", \
                          0, 1e15)
+                         
+        self.time_offset =  ROOT.RooRealVar("toffset%s" % tag, "Offset", \
+                            time_offset, "years")
     @classmethod
     def get_tag(cls):
         cls.class_tag += 1
@@ -29,7 +33,10 @@ class BaseVariables:
 
     def get_time(self):
         return self.time
-
+    
+    def get_time_offset(self):
+          return self.time_offset
+            
     def get_weighting(self):
         return self.weighting
 
@@ -38,6 +45,9 @@ class BaseVariables:
 
     def set_time(self, time):
         self.time = time
+
+    def set_time_offset(self, time):
+        self.time = time_offset
 
     def set_weighting(self, weighting):
         self.weighting = weighting

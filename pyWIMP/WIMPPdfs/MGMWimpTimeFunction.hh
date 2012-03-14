@@ -19,7 +19,8 @@ public:
   MGMWimpTimeFunction(const char *name, const char *title,
 	      RooAbsReal& _velocity_0,
 	      RooAbsReal& _velocity_1,
-	      RooAbsReal& _time);
+	      RooAbsReal& _time,
+	      RooAbsReal& _offset);
   MGMWimpTimeFunction(const MGMWimpTimeFunction& other, const char* name=0) ;
   virtual TObject* clone(const char* newname) const { return new MGMWimpTimeFunction(*this,newname); }
   inline virtual ~MGMWimpTimeFunction() { }
@@ -29,6 +30,7 @@ protected:
   RooRealProxy velocity_0 ;
   RooRealProxy velocity_1 ;
   RooRealProxy time ;
+  RooRealProxy offset ;
   
   Double_t evaluate() const ;
 
