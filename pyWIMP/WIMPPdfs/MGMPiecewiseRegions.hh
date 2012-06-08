@@ -3,7 +3,8 @@
 #include "TObject.h"
 #include <set>
  
-class MGMPiecewiseRegions {
+class MGMPiecewiseRegions : public TObject 
+{
   public:
     MGMPiecewiseRegions() {}
     ~MGMPiecewiseRegions() {}
